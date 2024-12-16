@@ -1,0 +1,28 @@
+FROM python:3.10-slim
+
+# Declare the build arg without .json extension
+ARG WORKFLOW_NAME=txt2vid-fp8
+
+WORKDIR /app
+
+# Install git
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone the miner repository
+RUN git clone https://github.com/heurist-network/comfyui-miner-release.git /app/comfyui-miner
+
+# Install pip dependencies
+WORKDIR /app/comfyui-miner
+RUN pip install --upgrade pip setuptools wheel httpx gitpython && \
+    pip install -r requirements-miner.txt
+
+# Update config to use absolute path and workflow name
+RUN sed -i 's|comfyui_home = "./ComfyUI"|comfyui_home = "/root/ComfyUI"|g' config.toml && \
+    sed -i "s|workflow_name = \"txt2vid-fp8\"|workflow_name = \"$WORKFLOW_NAME\"|g" config.toml
+
+# Run installation script
+WORKDIR /app/comfyui-miner/comfyui_service
+RUN python -u install.py && \
+    test -f /root/ComfyUI/main.py || (echo "Error: main.py not found in /root/ComfyUI" && exit 1)

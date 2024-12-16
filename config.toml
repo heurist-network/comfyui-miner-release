@@ -1,0 +1,17 @@
+[service]
+base_url = "https://sequencer-2.heurist.xyz"
+port = "8189"
+
+[versions]
+miner_version = "-v0.0.1"
+
+[storage]
+s3_bucket = 'prod-heurist'
+
+[miner]
+address = '0x6096776FB5c002E4Ed1a88D37f06AbBE2d8DF223'
+
+[installation]
+comfyui_home = "./ComfyUI" 
+docker_comfyui_home = "/root/ComfyUI" 
+workflow_name = "txt2vid-fp8"

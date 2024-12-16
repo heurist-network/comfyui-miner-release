@@ -1,0 +1,23 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone the repository since it contains all needed files
+RUN git clone https://github.com/heurist-network/comfyui-miner-release.git /app/miner
+
+WORKDIR /app/miner
+
+# Install Python dependencies
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements-miner.txt
+
+# Set environment variable for Python unbuffered output
+ENV PYTHONUNBUFFERED=1
+
+# Run the miner
+CMD ["python3", "comfyui-miner.py"]
