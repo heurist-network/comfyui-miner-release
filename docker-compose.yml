@@ -7,7 +7,7 @@ services:
       dockerfile: dockerfile/Dockerfile.setup
       args:
         - WORKFLOW_NAME=${WORKFLOW_NAME:-txt2vid-fp8}
-    image: heuristai/comfyui:setup-${WORKFLOW_NAME:-txt2vid-fp8}
+    image: heuristai/comfyui-txt2vid:setup-${WORKFLOW_NAME:-txt2vid-fp8}
     volumes:
       - comfyui_data:/root/ComfyUI
 
@@ -15,7 +15,8 @@ services:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.comfyui
-    image: heuristai/comfyui:comfyui-${WORKFLOW_NAME:-txt2vid-fp8}
+    image: heuristai/comfyui-txt2vid:comfyui-${WORKFLOW_NAME:-txt2vid-fp8}
+    restart: unless-stopped
     container_name: comfyui-container-gpu${GPU_DEVICE_ID:-0}-${COMFYUI_PORT:-8188}
     runtime: nvidia
     deploy:
@@ -38,7 +39,8 @@ services:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.miner
-    image: heuristai/comfyui:miner-${WORKFLOW_NAME:-txt2vid-fp8}
+    image: heuristai/comfyui-txt2vid:miner-${WORKFLOW_NAME:-txt2vid-fp8}
+    restart: unless-stopped
     container_name: miner-gpu${GPU_DEVICE_ID:-0}-${COMFYUI_PORT:-8188}
     runtime: nvidia
     deploy:
