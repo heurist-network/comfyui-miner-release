@@ -15,7 +15,7 @@ cd comfyui-miner-release
 ```
 2. Start the service:
 ```bash
-WORKFLOW_NAME=txt2vid-fp8 docker-compose pull
+docker-compose pull
 docker-compose up -d
 ```
 3. Monitor Processes:
