@@ -99,9 +99,20 @@ def setup_comfyui(snapshot_path, comfyui_home):
     
     # Setup ComfyUI
     comfyui_repo = "https://github.com/comfyanonymous/ComfyUI"
-    if not os.path.exists(comfyui_home):
+    
+    # Check if ComfyUI is actually installed by looking for main.py
+    if not os.path.exists(os.path.join(comfyui_home, "main.py")):
         print(f"Cloning ComfyUI repository to {comfyui_home}")
-        os.makedirs(comfyui_home)
+        # Create directory if it doesn't exist
+        os.makedirs(comfyui_home, exist_ok=True)
+        # Remove any existing partial installation
+        for item in os.listdir(comfyui_home):
+            item_path = os.path.join(comfyui_home, item)
+            if os.path.isfile(item_path):
+                os.remove(item_path)
+            elif os.path.isdir(item_path):
+                shutil.rmtree(item_path)
+                
         repo = Repo.init(comfyui_home)
         origin = repo.create_remote("origin", comfyui_repo)
         origin.fetch()
@@ -119,6 +130,8 @@ def setup_comfyui(snapshot_path, comfyui_home):
                 return
         else:
             print(f"Warning: Requirements file not found at {requirements_path}")
+    else:
+        print("ComfyUI already installed, skipping base installation")
 
     # Install custom nodes
     print("Installing custom nodes...")
