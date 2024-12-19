@@ -4,9 +4,10 @@ import time
 import boto3
 import base64
 import requests
-from typing import Dict, Optional, Any, Tuple
 from loguru import logger
 from PIL import Image
+from requests_aws4auth import AWS4Auth
+from typing import Dict, Optional, Any, Tuple
 
 class TaskProcessor:
     """Handles task-related operations including parameter extraction, execution, and result handling"""
@@ -77,6 +78,15 @@ class TaskProcessor:
         try:
             # If it's a video file (webp), use the upload endpoint
             if s3_key.endswith('.webp'):
+                # Create AWS auth session using the credentials
+                auth = AWS4Auth(
+                    credentials["access_key_id"],
+                    credentials["secret_access_key"],
+                    'us-east-1',
+                    'execute-api',
+                    session_token=credentials["session_token"]
+                )
+
                 with open(file_path, 'rb') as file:
                     video_content = base64.b64encode(file.read()).decode('utf-8')
                 
@@ -86,7 +96,8 @@ class TaskProcessor:
                     json={
                         'video': video_content,
                         'filename': s3_key
-                    }
+                    },
+                    auth=auth
                 )
                 upload_latency = time.time() - start_time
 
