@@ -22,7 +22,6 @@ RUN pip install --upgrade pip setuptools wheel httpx gitpython && \
 RUN sed -i 's|comfyui_home = "./ComfyUI"|comfyui_home = "/root/ComfyUI"|g' config.toml && \
     sed -i "s|workflow_name = \"txt2vid-fp8\"|workflow_name = \"$WORKFLOW_NAME\"|g" config.toml
 
-# Run installation script
+# Instead of running install.py during build, make it the entry point
 WORKDIR /app/comfyui-miner/comfyui_service
-RUN python -u install.py && \
-    test -f /root/ComfyUI/main.py || (echo "Error: main.py not found in /root/ComfyUI" && exit 1)
+ENTRYPOINT ["python", "-u", "install.py"]
