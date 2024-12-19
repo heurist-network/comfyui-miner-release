@@ -13,17 +13,21 @@ Virtual ComfyUI service that can be imported and run inside a python process. Th
 git clone https://github.com/heurist-network/comfyui-miner-release.git
 cd comfyui-miner-release
 ```
-2. Start the service:
+2. Pull and setup:
 ```bash
 docker-compose pull
-docker-compose up -d
+docker-compose run --rm setup
 ```
-3. Monitor Processes:
+3. Start services:
+```bash
+docker-compose up -d comfyui miner
+```
+4. Monitor Processes:
 ```bash
 docker-compose logs -f comfyui
 docker-compose logs -f miner
 ```
-4. Configuration Options
+5. Configuration Options
 You can configure the service using environment variables:
 
 - `GPU_DEVICE_ID`: GPU device to use (default: 0)
