@@ -78,7 +78,7 @@ docker run -d \
   -v /tmp:/tmp \
   -e COMFYUI_PORT=8188 \
   --name comfyui-container \
-  heuristai/comfyui:latest
+  heuristai/comfyui-service:latest
 ```
 6. Running the Miner
 ```
