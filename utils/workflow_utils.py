@@ -26,6 +26,11 @@ class WorkflowConfig:
         "txt2vid": "endpoints/txt2vid-fp8.yaml"
     }
 
+    WORKFLOW_NAME_MAPPINGS = {
+        "txt2vid-fp8": ["1"],      # This workflow setup can handle workflow_id "1"
+        "txt2vid-fp16": ["2"],     # This workflow setup can handle workflow_id "2"
+    }
+
     @classmethod
     def get_config(cls, task_type: str) -> Optional[TaskConfig]:
         """Retrieve configuration for a specific task type"""
@@ -41,3 +46,8 @@ class WorkflowConfig:
     def is_valid_task_type(cls, task_type: str) -> bool:
         """Check if the given task type is supported"""
         return task_type in cls.WORKFLOWS
+
+    @classmethod
+    def get_supported_workflow_ids(cls, workflow_name: str) -> list[str]:
+        """Get the workflow IDs supported by this workflow setup"""
+        return cls.WORKFLOW_NAME_MAPPINGS.get(workflow_name, [])

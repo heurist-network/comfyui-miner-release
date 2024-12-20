@@ -17,16 +17,18 @@ from utils.task_utils import TaskProcessor
 class MinerService:
     """Service for handling ComfyUI task mining operations"""
 
-    def __init__(self, base_url: str, erc20_address: str, comfyui_instance: ComfyUI, s3_bucket: str):
+    def __init__(self, base_url: str, erc20_address: str, comfyui_instance: ComfyUI, s3_bucket: str, workflow_name: str):
         """Initialize the miner service"""
         self.base_url = base_url
         self.erc20_address = erc20_address
         self.comfyui_instance = comfyui_instance
         self.s3_bucket = s3_bucket
+        self.workflow_name = workflow_name
+        self.supported_workflow_ids = WorkflowConfig.get_supported_workflow_ids(workflow_name)
 
         self.session = Session()
         self.session.headers.update({'Content-Type': 'application/json'})
-        logger.info(f"MinerService initialized with address: {erc20_address}")
+        logger.info(f"MinerService initialized with address: {erc20_address}, supported workflow name: {self.workflow_name}, workflow ids: {self.supported_workflow_ids}")
 
     def send_miner_request(self, timeout: int = 10) -> Optional[Dict[str, Any]]:
         """Send mining request to the server and return task data if available"""
@@ -39,7 +41,10 @@ class MinerService:
                     session.headers.update({'Content-Type': 'application/json'})
                     response = session.post(
                         f"{self.base_url}/miner_request",
-                        json={'erc20_address': self.erc20_address},
+                        json={
+                            'erc20_address': self.erc20_address,
+                            'last_workflow_id': self.supported_workflow_ids[0],  # Use first supported workflow ID
+                        },
                         timeout=timeout
                     )
 
@@ -213,7 +218,8 @@ def main():
             base_url=config['service']['base_url'],
             erc20_address=erc20_address,
             comfyui_instance=comfyui_instance,
-            s3_bucket=config['storage']['s3_bucket']
+            s3_bucket=config['storage']['s3_bucket'],
+            workflow_name=config['installation']['workflow_name']
         )
 
         miner_service.start_service()
