@@ -5,6 +5,7 @@ import json
 import requests
 import argparse
 import threading
+from web3 import Web3
 from loguru import logger
 from requests import Session
 from typing import Dict, Any, Optional
@@ -204,6 +205,10 @@ def main():
         # Use command line port if provided, otherwise use config port
         port = os.environ.get('COMFYUI_PORT') or args.port or config['service']['port']
         erc20_address = os.environ.get('ERC20_ADDRESS') or args.erc20_address or config['miner']['address']
+
+        if not Web3.is_address(erc20_address):
+            logger.error(f"Invalid ERC20 address: {erc20_address}")
+            raise ValueError("Invalid ERC20 address format")
         
         comfyui_instance = ComfyUI(config, server_port=str(port))
         logger.info(f"ComfyUI instance initialized on port {port}")
