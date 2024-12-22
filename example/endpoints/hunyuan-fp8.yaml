@@ -12,7 +12,7 @@ parameters:
     comfyui:
       node_id: 30
       field: inputs
-      subfield: text
+      subfield: prompt
 
 # The following parameters are hard-coded in the workflow:
 # - width: 512
