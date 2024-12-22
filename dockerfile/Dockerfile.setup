@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
 # Declare the build arg without .json extension
-ARG WORKFLOW_NAME=txt2vid-fp8
+ARG WORKFLOW_NAME=hunyuan-fp8
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ RUN pip install --upgrade pip setuptools wheel httpx gitpython && \
 
 # Update config to use absolute path and workflow name
 RUN sed -i 's|comfyui_home = "./ComfyUI"|comfyui_home = "/root/ComfyUI"|g' config.toml && \
-    sed -i "s|workflow_name = \"txt2vid-fp8\"|workflow_name = \"$WORKFLOW_NAME\"|g" config.toml
+    sed -i "s|workflow_name = \"hunyuan-fp8\"|workflow_name = \"$WORKFLOW_NAME\"|g" config.toml
 
 # Instead of running install.py during build, make it the entry point
 WORKDIR /app/comfyui-miner/comfyui_service
