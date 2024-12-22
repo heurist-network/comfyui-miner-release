@@ -8,6 +8,8 @@ services:
       args:
         - WORKFLOW_NAME=${WORKFLOW_NAME:-hunyuan-fp8}
     image: heuristai/comfyui-release:setup-${WORKFLOW_NAME:-hunyuan-fp8}
+    environment:
+      - WORKFLOW_NAME=${WORKFLOW_NAME:-hunyuan-fp8}
     volumes:
       - comfyui_data:/root/ComfyUI
 
