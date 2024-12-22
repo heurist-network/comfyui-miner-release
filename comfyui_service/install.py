@@ -176,6 +176,10 @@ def main():
         snapshot_path = example_path / "snapshots" / workflow_filename
         workflow_path = example_path / "workflows" / workflow_filename
 
+        # debug prints
+        print("Looking for snapshot at:", snapshot_path)
+        print("Looking for workflow at:", workflow_path)
+
         if not snapshot_path.exists():
             raise FileNotFoundError(f"Snapshot file not found: {snapshot_path}")
 

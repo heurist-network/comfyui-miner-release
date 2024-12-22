@@ -1,7 +1,5 @@
+# Dockerfile.setup
 FROM python:3.10-slim
-
-# Declare the build arg without .json extension
-ARG WORKFLOW_NAME=hunyuan-fp8
 
 WORKDIR /app
 
@@ -18,10 +16,9 @@ WORKDIR /app/comfyui-miner
 RUN pip install --upgrade pip setuptools wheel httpx gitpython && \
     pip install -r requirements-miner.txt
 
-# Update config to use absolute path and workflow name
-RUN sed -i 's|comfyui_home = "./ComfyUI"|comfyui_home = "/root/ComfyUI"|g' config.toml && \
-    sed -i "s|workflow_name = \"hunyuan-fp8\"|workflow_name = \"$WORKFLOW_NAME\"|g" config.toml
+# Update comfyui_home path only
+RUN sed -i 's|comfyui_home = "./ComfyUI"|comfyui_home = "/root/ComfyUI"|g' config.toml
 
-# Instead of running install.py during build, make it the entry point
+# Make the workflow name configurable at runtime
 WORKDIR /app/comfyui-miner/comfyui_service
-ENTRYPOINT ["python", "-u", "install.py"]
+ENTRYPOINT ["sh", "-c", "sed -i \"s|workflow_name = .*|workflow_name = \\\"$WORKFLOW_NAME\\\"|g\" ../config.toml && python -u install.py"]

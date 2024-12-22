@@ -1,5 +1,6 @@
 # Core ML/DL
 torch>=2.5.1
+torchsde
 transformers>=4.47.0
 diffusers>=0.31.0
 accelerate>=1.2.1
