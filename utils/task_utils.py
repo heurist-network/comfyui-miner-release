@@ -77,7 +77,7 @@ class TaskProcessor:
         """Upload file to S3 and return upload latency"""
         try:
             # If it's a video file (webp), use the upload endpoint
-            if s3_key.endswith('.webp'):
+            if s3_key.endswith(('.mp4', '.webp')):
                 # Create AWS auth session using the credentials
                 auth = AWS4Auth(
                     credentials["access_key_id"],
@@ -143,7 +143,8 @@ class TaskProcessor:
             
             # Generate S3 key with different patterns for video vs image
             if task_type == 'txt2vid':
-                s3_key = f"test-video/mochi-fp8-{credentials['miner_address']}-{task_id}.webp"
+                # s3_key = f"test-video/mochi-fp8-{credentials['miner_address']}-{task_id}.webp"
+                s3_key = f"test-video/hunyuan-fp8-{credentials['miner_address']}-{task_id}.mp4"
             else:
                 s3_key = f"{task_id}.jpg"
             

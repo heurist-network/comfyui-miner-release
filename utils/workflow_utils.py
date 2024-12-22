@@ -17,13 +17,13 @@ class WorkflowConfig:
         "upscaler": "workflows/upscaler.json",
         "txt2img": "workflows/txt2img.json",
         "flux-lora": "workflows/advanced_flux_lora.json",
-        "txt2vid": "workflows/txt2vid-fp8.json"
+        "txt2vid": "workflows/hunyuan-fp8.json"
     }
     ENDPOINTS = {
         "upscaler": "endpoints/upscaler.yaml",
         "txt2img": "endpoints/txt2img.yaml",
         "flux-lora": "endpoints/advanced_flux_lora.yaml",
-        "txt2vid": "endpoints/txt2vid-fp8.yaml"
+        "txt2vid": "endpoints/hunyuan-fp8.yaml"
     }
 
     @classmethod

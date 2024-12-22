@@ -1,5 +1,5 @@
 {
-    "comfyui": "7126ecffde66036070c6feef5e4c92d1ec2de025",
+    "comfyui": "1419dee9156051aed322c55c7ad8b14fddb7d2d3",
     "git_custom_nodes": {
         "https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes": {
             "hash": "d78b780ae43fcf8c6b7c6505e6ffb4584281ceca",
@@ -13,16 +13,12 @@
             "hash": "626e001a20c4a6ad8f987153538d7ff750cb2850",
             "disabled": false
         },
-        "https://github.com/FizzleDorf/ComfyUI_FizzNodes": {
-            "hash": "fd2165162ed939d3c23ab6c63f206ae93457aad8",
-            "disabled": false
-        },
         "https://github.com/ltdrdata/ComfyUI-Manager.git": {
-            "hash": "ed3403ca1a2bc5fa16561551db720417b8cab022",
+            "hash": "979a03984768e48e03a9dcb416ae0803491f5bba",
             "disabled": false
         },
         "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite": {
-            "hash": "e369cac458f977fab0ee5719ce5e4057dc04729f",
+            "hash": "9700a6c0bfe6f96ff7a616c0b524df1f39413168",
             "disabled": false
         },
         "https://github.com/ltdrdata/ComfyUI-Inspire-Pack": {
@@ -30,7 +26,7 @@
             "disabled": false
         },
         "https://github.com/shiimizu/ComfyUI-TiledDiffusion": {
-            "hash": "7c1cbfa6715ba92c35e788bea674382b96dfc16f",
+            "hash": "448e961d8289779eeef9045c1cf7ef438e3a2a7b",
             "disabled": false
         },
         "https://github.com/yolain/ComfyUI-Easy-Use": {
