@@ -7,7 +7,7 @@ services:
       dockerfile: dockerfile/Dockerfile.setup
     image: heuristai/comfyui-release:setup
     environment:
-      - WORKFLOW_NAME=${WORKFLOW_NAME:-hunyuan-fp8}
+      - WORKFLOW_NAMES=${WORKFLOW_NAMES}
     volumes:
       - comfyui_data:/root/ComfyUI
 

@@ -1,12 +1,39 @@
-# requirements-miner.txt
-boto3>=1.34.11
-loguru>=0.7.2
-Pillow>=10.4.0
+# Core dependencies
+pip>=23.0.0
+setuptools>=69.0.0
+wheel>=0.42.0
+urllib3>=2.0.0
+transformers>=4.47.0
+
+# HTTP and API clients
+httpx>=0.26.0
 requests>=2.25.1
-toml>=0.10.2
-websocket-client>=1.8.0
-pyyaml>=6.0.1
-tqdm>=4.66.4
-pydantic==2.8.2
 requests-aws4auth==1.3.1
+websocket-client>=1.8.0
+
+# Git integration
+gitpython>=3.1.0
+types-requests>=2.31.0
+
+# AWS
+boto3>=1.34.11
+
+# Logging and CLI
+loguru>=0.7.2
+tqdm>=4.66.4
+typer>=0.9.0
+rich>=13.7.0
+
+# Data formats and validation
+pydantic==2.8.2
+pyyaml>=6.0.1
+toml>=0.10.2
+
+# Image processing
+Pillow>=10.4.0
+
+# Blockchain
 web3==7.6.1
+
+# Type hints
+typing-extensions>=4.9.0
