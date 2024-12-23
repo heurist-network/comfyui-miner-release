@@ -5,9 +5,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.setup
-      args:
-        - WORKFLOW_NAME=${WORKFLOW_NAME:-hunyuan-fp8}
-    image: heuristai/comfyui-release:setup-${WORKFLOW_NAME:-hunyuan-fp8}
+    image: heuristai/comfyui-release:setup
     environment:
       - WORKFLOW_NAME=${WORKFLOW_NAME:-hunyuan-fp8}
     volumes:
@@ -17,7 +15,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.comfyui
-    image: heuristai/comfyui-release:comfyui-${WORKFLOW_NAME:-hunyuan-fp8}
+    image: heuristai/comfyui-release:comfyui
     restart: unless-stopped
     container_name: comfyui-container-gpu${GPU_DEVICE_ID:-0}-${COMFYUI_PORT:-8188}
     runtime: nvidia
@@ -39,7 +37,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.miner
-    image: heuristai/comfyui-release:miner-${WORKFLOW_NAME:-hunyuan-fp8}
+    image: heuristai/comfyui-release:miner
     restart: unless-stopped
     container_name: miner-gpu${GPU_DEVICE_ID:-0}-${COMFYUI_PORT:-8188}
     runtime: nvidia
