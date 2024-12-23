@@ -1,0 +1,24 @@
+# Workflow configurations mapped by ID
+workflow_configs:
+  "1":  # hunyuan-fp8
+    workflow: "workflows/hunyuan-fp8.json"
+    endpoint: "endpoints/hunyuan-fp8.yaml"
+    task_type: "txt2vid"
+    output:
+      format: "mp4"
+      prefix: "hunyuan-fp8"
+    description: "Hunyuan FP8 video generation workflow"
+
+  "2":  # txt2vid-fp8/mochi
+    workflow: "workflows/txt2vid-fp8.json"
+    endpoint: "endpoints/txt2vid-fp8.yaml"
+    task_type: "txt2vid"
+    output:
+      format: "webp"
+      prefix: "mochi-fp8"
+    description: "Mochi FP8 video generation workflow"
+
+# Map installation names to supported workflow IDs
+workflow_name_mappings:
+  hunyuan-fp8: ["1"]
+  txt2vid-fp8: ["2"]

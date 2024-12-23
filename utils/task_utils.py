@@ -4,9 +4,10 @@ import time
 import boto3
 import base64
 import requests
-from loguru import logger
 from PIL import Image
+from loguru import logger
 from requests_aws4auth import AWS4Auth
+from utils.workflow_utils import WorkflowConfig
 from typing import Dict, Optional, Any, Tuple
 
 class TaskProcessor:
@@ -135,16 +136,22 @@ class TaskProcessor:
                      task_type: str,
                      output_path: str,
                      credentials: Dict[str, str],
+                     workflow_id: str,   
                      bucket: str = "prod-heurist") -> Tuple[str, Optional[float]]:
         """Process and upload task output, returns (s3_key, upload_latency)"""
         try:
             # Convert output to appropriate format
             processed_path = cls._convert_output(output_path, task_type)
             
-            # Generate S3 key with different patterns for video vs image
+            # Get output configuration from workflow config
+            output_config = WorkflowConfig.get_output_config(workflow_id)
+            if not output_config:
+                logger.error(f"No output configuration found for workflow ID: {workflow_id}")
+                return "", None
+
+            # Generate S3 key based on configuration
             if task_type == 'txt2vid':
-                # s3_key = f"test-video/mochi-fp8-{credentials['miner_address']}-{task_id}.webp"
-                s3_key = f"test-video/hunyuan-fp8-{credentials['miner_address']}-{task_id}.mp4"
+                s3_key = f"test-video/{output_config['prefix']}-{credentials['miner_address']}-{task_id}.{output_config['format']}"
             else:
                 s3_key = f"{task_id}.jpg"
             

@@ -1,7 +1,8 @@
-# workflow_utils.py
+import yaml
 from typing import Dict, Optional
 from dataclasses import dataclass
 from loguru import logger
+import os
 
 @dataclass
 class TaskConfig:
@@ -13,41 +14,58 @@ class WorkflowConfig:
     """Workflow configuration management"""
     
     BASE_PATH = "example"
-    WORKFLOWS = {
-        "upscaler": "workflows/upscaler.json",
-        "txt2img": "workflows/txt2img.json",
-        "flux-lora": "workflows/advanced_flux_lora.json",
-        "txt2vid": "workflows/hunyuan-fp8.json"
-    }
-    ENDPOINTS = {
-        "upscaler": "endpoints/upscaler.yaml",
-        "txt2img": "endpoints/txt2img.yaml",
-        "flux-lora": "endpoints/advanced_flux_lora.yaml",
-        "txt2vid": "endpoints/hunyuan-fp8.yaml"
-    }
-
-    WORKFLOW_NAME_MAPPINGS = {
-        "txt2vid-fp8": ["1"],      # This workflow setup can handle workflow_id "1"
-        "txt2vid-fp16": ["2"],     # This workflow setup can handle workflow_id "2"
-    }
+    _config = None
 
     @classmethod
-    def get_config(cls, task_type: str) -> Optional[TaskConfig]:
-        """Retrieve configuration for a specific task type"""
-        if not cls.is_valid_task_type(task_type):
-            logger.error(f"Unknown task type: {task_type}")
+    def load_config(cls):
+        """Load workflow configurations from YAML file"""
+        if cls._config is None:
+            config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'workflows.yml')
+            try:
+                with open(config_path, 'r') as f:
+                    cls._config = yaml.safe_load(f)
+                logger.info(f"Loaded workflow configurations from {config_path}")
+            except Exception as e:
+                logger.error(f"Failed to load workflow configurations: {e}")
+                cls._config = {"workflow_configs": {}, "workflow_name_mappings": {}}
+
+    @classmethod
+    def get_workflow_config(cls, workflow_id: str) -> Optional[Dict]:
+        """Get raw workflow configuration"""
+        cls.load_config()
+        return cls._config["workflow_configs"].get(workflow_id)
+
+    @classmethod
+    def get_config(cls, workflow_id: str) -> Optional[TaskConfig]:
+        """Retrieve configuration based on workflow_id"""
+        config = cls.get_workflow_config(workflow_id)
+        if not config:
+            logger.error(f"Unknown workflow ID: {workflow_id}")
             return None
+            
         return TaskConfig(
-            workflow=f"{cls.BASE_PATH}/{cls.WORKFLOWS[task_type]}",
-            endpoint=f"{cls.BASE_PATH}/{cls.ENDPOINTS[task_type]}"
+            workflow=f"{cls.BASE_PATH}/{config['workflow']}",
+            endpoint=f"{cls.BASE_PATH}/{config['endpoint']}"
         )
 
     @classmethod
-    def is_valid_task_type(cls, task_type: str) -> bool:
-        """Check if the given task type is supported"""
-        return task_type in cls.WORKFLOWS
+    def is_valid_task_type(cls, workflow_id: str, task_type: str) -> bool:
+        """Check if the task type matches the workflow"""
+        config = cls.get_workflow_config(workflow_id)
+        if not config:
+            return False
+        return config["task_type"] == task_type
+
+    @classmethod
+    def get_output_config(cls, workflow_id: str) -> Optional[Dict[str, str]]:
+        """Get output configuration for a workflow"""
+        config = cls.get_workflow_config(workflow_id)
+        if not config:
+            return None
+        return config.get("output")
 
     @classmethod
     def get_supported_workflow_ids(cls, workflow_name: str) -> list[str]:
         """Get the workflow IDs supported by this workflow setup"""
-        return cls.WORKFLOW_NAME_MAPPINGS.get(workflow_name, [])
+        cls.load_config()
+        return cls._config["workflow_name_mappings"].get(workflow_name, [])

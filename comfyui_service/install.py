@@ -139,6 +139,18 @@ def setup_comfyui(snapshot_path, comfyui_home):
         hash = node["hash"]
         repo_name = url.split("/")[-1].replace(".git", "")
         repo_dir = f"{comfyui_home}/custom_nodes/{repo_name}"
+        
+        # Check if node already exists with correct hash
+        if os.path.exists(repo_dir):
+            try:
+                repo = Repo(repo_dir)
+                current_hash = repo.head.commit.hexsha
+                if current_hash == hash:
+                    print(f"Custom node {repo_name} already installed with correct hash, skipping")
+                    continue
+            except Exception:
+                pass
+        
         clone_and_install(url, hash, clone_to=repo_dir)
 
     # Download models
@@ -161,31 +173,38 @@ def main():
         
         # Get paths
         example_path = get_example_path()
-        workflow_name = installation_config.get('workflow_name')
+        workflow_names = installation_config.get('workflow_names', [])
+        if isinstance(workflow_names, str):  # For backwards compatibility
+            workflow_names = [workflow_names]
         comfyui_home = installation_config.get('comfyui_home')
 
-        if not workflow_name:
-            raise ValueError("workflow_name not found in config")
+        if not workflow_names:
+            raise ValueError("workflow_names not found in config")
         if not comfyui_home:
             raise ValueError("comfyui_home not found in config")
 
-        # Append .json if not present
-        workflow_filename = f"{workflow_name}.json" if not workflow_name.endswith('.json') else workflow_name
+        # Process each workflow
+        for workflow_name in workflow_names:
+            print(f"\nProcessing workflow: {workflow_name}")
+            
+            # Append .json if not present
+            workflow_filename = f"{workflow_name}.json" if not workflow_name.endswith('.json') else workflow_name
 
-        # Construct full paths
-        snapshot_path = example_path / "snapshots" / workflow_filename
-        workflow_path = example_path / "workflows" / workflow_filename
+            # Construct full paths
+            snapshot_path = example_path / "snapshots" / workflow_filename
+            workflow_path = example_path / "workflows" / workflow_filename
 
-        # debug prints
-        print("Looking for snapshot at:", snapshot_path)
-        print("Looking for workflow at:", workflow_path)
+            # debug prints
+            print("Looking for snapshot at:", snapshot_path)
+            print("Looking for workflow at:", workflow_path)
 
-        if not snapshot_path.exists():
-            raise FileNotFoundError(f"Snapshot file not found: {snapshot_path}")
+            if not snapshot_path.exists():
+                print(f"Warning: Snapshot file not found: {snapshot_path}")
+                continue  # Skip this workflow but continue with others
 
-        sys.path.append(comfyui_home)
-        setup_comfyui(str(snapshot_path), comfyui_home)
-        print(f"Installation completed for {workflow_path}")
+            sys.path.append(comfyui_home)
+            setup_comfyui(str(snapshot_path), comfyui_home)
+            print(f"Installation completed for {workflow_path}")
 
     except Exception as e:
         print(f"Installation failed: {e}")
