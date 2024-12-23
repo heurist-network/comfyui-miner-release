@@ -13,7 +13,13 @@ Virtual ComfyUI service that can be imported and run inside a python process. Th
 git clone https://github.com/heurist-network/comfyui-miner-release.git
 cd comfyui-miner-release
 ```
-2. Pull and setup:
+2. Create a .env file in the project root with your configuration:
+```bash
+GPU_DEVICE_ID=0
+COMFYUI_PORT=8189    
+ERC20_ADDRESS=your-erc20-address  
+```
+3. Pull and setup:
 ```bash
 docker-compose pull
 docker-compose run --rm setup
@@ -27,17 +33,13 @@ docker-compose up -d comfyui miner
 docker-compose logs -f comfyui
 docker-compose logs -f miner
 ```
-5. Configuration Options
+Configuration Options
 You can configure the service using environment variables:
 
 - `GPU_DEVICE_ID`: GPU device to use (default: 0)
 - `COMFYUI_PORT`: Port for ComfyUI service (default: 8188)
 - `ERC20_ADDRESS`: Your ERC20 address for mining
-
-Example with parameters:
-```bash
-ERC20_ADDRESS=0x123... COMFYUI_PORT=8188 GPU_DEVICE_ID=0 docker-compose up -d
-```
+- `WORKFLOW_NAMES`: Comma-separated list of workflows to install (default: All workflows in `config.toml`)
 
 ## Method 2: Manual Installation
 
