@@ -16,27 +16,20 @@ from utils.workflow_utils import WorkflowConfig
 from utils.task_utils import TaskProcessor
 
 class MinerService:
-    """Service for handling ComfyUI task mining operations"""
-
+    """MinerService class for handling mining tasks and submitting results."""
     def __init__(self, base_url: str, erc20_address: str, comfyui_instance: ComfyUI, s3_bucket: str, workflow_names: str):
-        """Initialize the miner service"""
         self.base_url = base_url
         self.erc20_address = erc20_address
         self.comfyui_instance = comfyui_instance
         self.s3_bucket = s3_bucket
         self.workflow_names = workflow_names
-        
-        # Collect all supported workflow IDs from all workflow names
-        self.supported_workflow_ids = []
-        for workflow_name in workflow_names:
-            self.supported_workflow_ids.extend(
-                WorkflowConfig.get_supported_workflow_ids(workflow_name)
-            )
-        self.supported_workflow_ids = list(set(self.supported_workflow_ids))
 
         self.session = Session()
         self.session.headers.update({'Content-Type': 'application/json'})
-        logger.info(f"MinerService initialized with address: {erc20_address}, supported workflow name: {self.workflow_names}, workflow ids: {self.supported_workflow_ids}")
+        self.supported_workflow_ids = WorkflowConfig.get_valid_workflow_ids(workflow_names)
+
+        logger.info(f"MinerService ready with {len(self.supported_workflow_ids)} workflows for miner {self.erc20_address} "
+                   f"(workflows: {', '.join(workflow_names)})")
 
     def send_miner_request(self, timeout: int = 10) -> Optional[Dict[str, Any]]:
         """Send mining request to the server and return task data if available"""

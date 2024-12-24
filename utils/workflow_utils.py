@@ -1,8 +1,11 @@
+import os
 import yaml
-from typing import Dict, Optional
+import json
+import toml
+from typing import Dict, Optional, List, Union
 from dataclasses import dataclass
 from loguru import logger
-import os
+from pathlib import Path
 
 @dataclass
 class TaskConfig:
@@ -15,7 +18,9 @@ class WorkflowConfig:
     
     BASE_PATH = "example"
     _config = None
+    _snapshots = {}  # Cache for loaded snapshots
 
+    # Core configuration loading methods
     @classmethod
     def load_config(cls):
         """Load workflow configurations from YAML file"""
@@ -29,6 +34,38 @@ class WorkflowConfig:
                 logger.error(f"Failed to load workflow configurations: {e}")
                 cls._config = {"workflow_configs": {}, "workflow_name_mappings": {}}
 
+    @classmethod
+    def _get_comfyui_path(cls) -> str:
+        """Determine correct ComfyUI path based on environment"""
+        config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.toml')
+        with open(config_path, 'r') as f:
+            config = toml.load(f)
+        
+        if os.path.exists('/.dockerenv'):
+            return config['installation']['docker_comfyui_home']
+        return config['installation']['comfyui_home']
+
+    @classmethod
+    def _load_snapshot(cls, workflow_id: str) -> Optional[Dict]:
+        """Load snapshot file for a workflow"""
+        if workflow_id in cls._snapshots:
+            return cls._snapshots[workflow_id]
+
+        config = cls.get_workflow_config(workflow_id)
+        if not config:
+            return None
+
+        snapshot_path = os.path.join(cls.BASE_PATH, "snapshots", config['workflow'].split('/')[-1])
+        try:
+            with open(snapshot_path, 'r') as f:
+                snapshot = json.load(f)
+                cls._snapshots[workflow_id] = snapshot
+                return snapshot
+        except Exception as e:
+            logger.error(f"Failed to load snapshot for workflow {workflow_id}: {e}")
+            return None
+
+    # Configuration retrieval methods
     @classmethod
     def get_workflow_config(cls, workflow_id: str) -> Optional[Dict]:
         """Get raw workflow configuration"""
@@ -49,14 +86,6 @@ class WorkflowConfig:
         )
 
     @classmethod
-    def is_valid_task_type(cls, workflow_id: str, task_type: str) -> bool:
-        """Check if the task type matches the workflow"""
-        config = cls.get_workflow_config(workflow_id)
-        if not config:
-            return False
-        return config["task_type"] == task_type
-
-    @classmethod
     def get_output_config(cls, workflow_id: str) -> Optional[Dict[str, str]]:
         """Get output configuration for a workflow"""
         config = cls.get_workflow_config(workflow_id)
@@ -69,3 +98,102 @@ class WorkflowConfig:
         """Get the workflow IDs supported by this workflow setup"""
         cls.load_config()
         return cls._config["workflow_name_mappings"].get(workflow_name, [])
+
+    # Validation methods
+    @classmethod
+    def is_valid_task_type(cls, workflow_id: str, task_type: str) -> bool:
+        """Check if the task type matches the workflow"""
+        config = cls.get_workflow_config(workflow_id)
+        if not config:
+            return False
+        return config["task_type"] == task_type
+
+    @classmethod
+    def validate(cls, workflows: Optional[Union[str, List[str]]] = None) -> Dict[str, Dict]:
+        """Validate one or more workflows. Accepts either workflow name(s) or workflow ID(s)."""
+        cls.load_config()
+        results = {}
+        
+        # Convert input to list if single string
+        if isinstance(workflows, str):
+            workflows = [workflows]
+        
+        # If no workflows specified, validate all
+        if not workflows:
+            workflows = list(cls._config["workflow_name_mappings"].keys())
+
+        for workflow in workflows:
+            # Determine if this is a workflow name or ID
+            if workflow in cls._config["workflow_name_mappings"]:
+                workflow_ids = cls.get_supported_workflow_ids(workflow)
+                key = workflow
+            else:
+                workflow_ids = [workflow]
+                for name, ids in cls._config["workflow_name_mappings"].items():
+                    if workflow in ids:
+                        key = name
+                        break
+                else:
+                    key = workflow
+
+            result = {
+                "valid": True,
+                "missing_components": [],
+                "workflow_ids": workflow_ids
+            }
+
+            for workflow_id in workflow_ids:
+                snapshot = cls._load_snapshot(workflow_id)
+                if not snapshot:
+                    result["valid"] = False
+                    result["missing_components"].append(f"Missing or invalid snapshot for workflow ID: {workflow_id}")
+                    continue
+
+                comfyui_path = cls._get_comfyui_path()
+                
+                # Validate custom nodes and models
+                custom_nodes_path = os.path.join(comfyui_path, "custom_nodes")
+                
+                # Check git custom nodes
+                for repo_url, node_info in snapshot.get("git_custom_nodes", {}).items():
+                    repo_name = repo_url.split("/")[-1].replace(".git", "")
+                    node_path = os.path.join(custom_nodes_path, repo_name)
+                    if not os.path.exists(node_path):
+                        result["valid"] = False
+                        result["missing_components"].append(f"Missing custom node: {repo_name}")
+
+                # Check file custom nodes
+                for node in snapshot.get("file_custom_nodes", []):
+                    if not node.get("disabled", False):
+                        node_path = os.path.join(custom_nodes_path, node["filename"])
+                        if not os.path.exists(node_path):
+                            result["valid"] = False
+                            result["missing_components"].append(f"Missing custom node file: {node['filename']}")
+
+                # Check model files
+                for model_path in snapshot.get("downloads", {}).keys():
+                    full_path = os.path.join(comfyui_path, model_path)
+                    if not os.path.exists(full_path):
+                        result["valid"] = False
+                        result["missing_components"].append(f"Missing model: {model_path}")
+
+            results[key] = result
+        logger.info(f"Workflow validation results: {results}")
+        return results
+
+    @classmethod
+    def get_valid_workflow_ids(cls, workflow_names: List[str]) -> List[str]:
+        """Validate workflows and return supported workflow IDs if all valid. Raises ValueError with details if any workflow is invalid."""
+        validation_results = cls.validate(workflow_names)
+        invalid_workflows = [name for name, result in validation_results.items() if not result["valid"]]
+        
+        if invalid_workflows:
+            for name in invalid_workflows:
+                logger.error(f"Missing components for {name}:")
+                for missing in validation_results[name]["missing_components"]:
+                    logger.error(f"  - {missing}")
+            raise ValueError("Some workflows are not properly installed. Please run setup first.")
+
+        return list(set().union(*(
+            cls.get_supported_workflow_ids(name) for name in workflow_names
+        )))
