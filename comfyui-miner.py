@@ -7,6 +7,7 @@ import argparse
 import threading
 from web3 import Web3
 from loguru import logger
+from dotenv import load_dotenv
 from requests import Session
 from typing import Dict, Any, Optional
 from multiprocessing import current_process
@@ -203,6 +204,8 @@ class MinerService:
             time.sleep(interval)
 
 def main():
+    load_dotenv()
+
     """Main entry point for the ComfyUI mining service"""
     parser = argparse.ArgumentParser(description="Run the ComfyUI Mining Service")
     parser.add_argument('--port', type=int,
@@ -224,6 +227,11 @@ def main():
         # Use command line port if provided, otherwise use config port
         port = os.environ.get('COMFYUI_PORT') or args.port or config['service']['port']
         erc20_address = os.environ.get('ERC20_ADDRESS') or args.erc20_address or config['miner']['address']
+        workflow_names = (
+            [w.strip() for w in os.environ.get('WORKFLOW_NAMES', '').split(',') if w.strip()] or
+            [w.strip() for w in (args.workflows or '').split(',') if w.strip()] or 
+            config['installation']['workflow_names']
+        )
 
         if not Web3.is_address(erc20_address):
             logger.error(f"Invalid ERC20 address: {erc20_address}")
@@ -238,7 +246,7 @@ def main():
             erc20_address=erc20_address,
             comfyui_instance=comfyui_instance,
             s3_bucket=config['storage']['s3_bucket'],
-            workflow_names=config['installation']['workflow_names']
+            workflow_names=workflow_names
         )
 
         miner_service.start_service()

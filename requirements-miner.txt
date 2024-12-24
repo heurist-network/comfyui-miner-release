@@ -4,6 +4,7 @@ setuptools>=69.0.0
 wheel>=0.42.0
 urllib3>=2.0.0
 transformers>=4.47.0
+python-dotenv>=0.19.0
 
 # HTTP and API clients
 httpx>=0.26.0
