@@ -1,5 +1,5 @@
 [service]
-base_url = "https://sequencer-2.heurist.xyz"
+base_url = "https://sequencer-v2.heurist.xyz"
 port = "8189"
 
 [versions]

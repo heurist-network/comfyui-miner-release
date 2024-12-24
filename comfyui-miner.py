@@ -215,6 +215,8 @@ def main():
                        help='Logging level')
     parser.add_argument('--erc20-address', type=str,
                        help='ERC20 address for mining (overrides config value)')
+    parser.add_argument('--workflows', type=str,
+                       help='Comma-separated list of workflows to support')
     args = parser.parse_args()
 
     # Initialize logging
