@@ -18,6 +18,7 @@ cd comfyui-miner-release
 GPU_DEVICE_ID=0
 COMFYUI_PORT=8189    
 ERC20_ADDRESS=your-erc20-address  
+WORKFLOW_NAMES=hunyuan-fp8
 ```
 3. Pull and setup:
 ```bash
@@ -39,25 +40,29 @@ You can configure the service using environment variables:
 - `GPU_DEVICE_ID`: GPU device to use (default: 0)
 - `COMFYUI_PORT`: Port for ComfyUI service (default: 8188)
 - `ERC20_ADDRESS`: Your ERC20 address for mining
-- `WORKFLOW_NAMES`: Comma-separated list of workflows to install (default: All workflows in `config.toml`)
+- `WORKFLOW_NAMES`: Comma-separated list of workflows to install and support (default: hunyuan-fp8)
 
 ## Method 2: Manual Installation
 
-### Starting the ComfyUI Service
 1. Clone the repository:
 ```
 git clone https://github.com/your-repo/comfyui-miner.git
 cd comfyui-miner
 ```
-
-2. Set up Python environment:
+2. Create a .env file in the project root with your configuration:
+```
+GPU_DEVICE_ID=0
+COMFYUI_PORT=8189
+ERC20_ADDRESS=your-erc20-address
+WORKFLOW_NAMES=hunyuan-fp8,txt2vid-fp8
+```
+3. Set up Python environment:
 ```
 conda activate -n comfyui python=3.10
 python -m pip install --upgrade pip setuptools wheel
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-miner.txt
 ```
-
-3. Install ComfyUI and models:
+4. Install ComfyUI and models:
 ```
 python comfyui_service/install.py
 ```
@@ -65,33 +70,25 @@ Note: If you encounter permission issues, run:
 ```
 sudo chown -R $(whoami) ./
 ```
-
-4. Pull the Docker image:
+5. Pull the Docker image:
 ```
 docker pull heuristai/comfyui-service:latest
 ```
-
-5. Run the ComfyUI container:
+6. Run the ComfyUI container:
 ```
 docker run -d \
   --gpus '"device=0"' \
   --network host \
   -v $(pwd)/ComfyUI:/app \
   -v /tmp:/tmp \
-  -e COMFYUI_PORT=8188 \
+  --env-file .env \
   --name comfyui-container \
   heuristai/comfyui-service:latest
 ```
-6. Running the Miner
+7. Running the Miner
 ```
-python comfyui-miner-v0.0.1.py --port <comfyui-service-port>
+python comfyui-miner.py
 ```
-Replace `<comfyui-service-port>` with the port you specified for the ComfyUI service.
-
-### Configuration
-
-The miner uses a configuration file (`config.toml`) for various settings. Ensure this file is properly set up before running the miner.
-
 ## Troubleshooting
 
 If you encounter any issues, please check the following:
