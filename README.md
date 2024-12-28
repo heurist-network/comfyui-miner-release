@@ -61,6 +61,7 @@ WORKFLOW_NAMES=hunyuan-fp8,txt2vid-fp8
 conda activate -n comfyui python=3.10
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r requirements-miner.txt
+python -m pip install -r requirements-comfyui.txt
 ```
 4. Install ComfyUI and models:
 ```
@@ -70,22 +71,7 @@ Note: If you encounter permission issues, run:
 ```
 sudo chown -R $(whoami) ./
 ```
-5. Pull the Docker image:
-```
-docker pull heuristai/comfyui-service:latest
-```
-6. Run the ComfyUI container:
-```
-docker run -d \
-  --gpus '"device=0"' \
-  --network host \
-  -v $(pwd)/ComfyUI:/app \
-  -v /tmp:/tmp \
-  --env-file .env \
-  --name comfyui-container \
-  heuristai/comfyui-service:latest
-```
-7. Running the Miner
+5. Running the Miner
 ```
 python comfyui-miner.py
 ```

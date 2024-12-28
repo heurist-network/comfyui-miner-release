@@ -240,6 +240,7 @@ def main():
             raise ValueError("Invalid ERC20 address format")
         
         comfyui_instance = ComfyUI(config, server_port=str(port))
+        comfyui_instance.setup()
         logger.info(f"ComfyUI instance initialized on port {port}")
 
         # Start mining service

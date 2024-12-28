@@ -1,5 +1,8 @@
 # Core ML/DL
 torch>=2.5.1
+torchvision
+torchaudio
+triton==3.1.0
 torchsde
 transformers>=4.47.0
 diffusers>=0.31.0
