@@ -144,16 +144,15 @@ class ComfyUI:
         else:
             print("Server process not found.")
 
-    def is_server_running(self) -> bool:
+    def is_server_running(self, startup_check: bool = False) -> bool:
+        """Check if ComfyUI server is responding"""
         try:
-            # Simple API health check
             response = requests.get(f"http://{self.server_address}/object_info", timeout=10)
             return response.status_code == 200
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Connection error during health check: {e}")
-            return False
         except Exception as e:
-            logger.error(f"Unexpected error during health check: {e}")
+            # Only log errors during normal operation, not during startup
+            if not startup_check:
+                logger.error(f"Connection error during health check: {e}")
             return False
 
     def queue_prompt(self, prompt, client_id):

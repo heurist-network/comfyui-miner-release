@@ -31,15 +31,20 @@ class MinerService:
 
         # Add health check related attributes
         self.last_health_check = time.time()
-        self.health_check_interval = 30  # Check every 30 seconds
+        self.health_check_interval = 10  # Check every 10 seconds
         self.healthy = True
 
         logger.info(f"MinerService ready with {len(self.supported_workflow_ids)} workflows for miner {self.erc20_address} "
                    f"(workflows: {', '.join(workflow_names)})")
 
-    def check_health(self) -> bool:
+    def check_health(self, startup_check: bool = False) -> bool:
         """Check ComfyUI server health"""
-        is_running = self.comfyui_instance.is_server_running()
+        is_running = self.comfyui_instance.is_server_running(startup_check)
+        if startup_check:
+            # During startup, just pass through the status
+            self.healthy = is_running
+            return is_running
+        # Normal operation logging and state management
         if not is_running and self.healthy:
             logger.error("ComfyUI service is not responding")
             self.healthy = False
@@ -202,13 +207,20 @@ class MinerService:
             except Exception as e:
                 logger.exception(f"Failed to submit result: {e}")
 
-    def start_service(self, interval: int = 2) -> None:
-        """Start the mining service loop with health checks"""
-        logger.info("Starting mining service")
-        
-        # Initial health check
-        if not self.check_health():
-            logger.error("ComfyUI service not available. Please ensure the service is running.")
+    def start_service(self, interval: int = 2, startup_timeout: int = 120) -> None:
+        """Start the mining service loop with health checks"""        
+        # Wait for ComfyUI to become available
+        logger.info("Waiting for ComfyUI service to initialize...")
+        start_time = time.time()
+        while time.time() - start_time < startup_timeout:
+            if self.check_health(startup_check=True):
+                logger.success("ComfyUI service initialization complete. Ready to receive and process tasks.")
+                break
+            time.sleep(2)  # Check every 5 seconds
+            elapsed = int(time.time() - start_time)
+            logger.info(f"Waiting for ComfyUI service... ({elapsed}s elapsed)")
+        else:
+            logger.error(f"ComfyUI service did not become available within {startup_timeout} seconds")
             return
 
         while True:
@@ -275,7 +287,7 @@ def main():
             raise ValueError("Invalid ERC20 address format")
         
         comfyui_instance = ComfyUI(config, server_port=str(port))
-        logger.info(f"ComfyUI instance initialized on port {port}")
+        logger.info(f"ComfyUI client configured for port {port}")
 
         # Start mining service
         miner_service = MinerService(
