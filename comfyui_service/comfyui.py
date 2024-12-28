@@ -5,6 +5,7 @@ import uuid
 import json
 import yaml
 import shutil
+import requests
 import subprocess
 import threading
 import tempfile
@@ -143,12 +144,16 @@ class ComfyUI:
         else:
             print("Server process not found.")
 
-    def is_server_running(self):
+    def is_server_running(self) -> bool:
         try:
-            url = "http://{}/history/123".format(self.server_address)
-            with urllib.request.urlopen(url) as response:
-                return response.status == 200
-        except URLError:
+            # Simple API health check
+            response = requests.get(f"http://{self.server_address}/object_info", timeout=10)
+            return response.status_code == 200
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Connection error during health check: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error during health check: {e}")
             return False
 
     def queue_prompt(self, prompt, client_id):
