@@ -58,7 +58,7 @@ WORKFLOW_NAMES=hunyuan-fp8,txt2vid-fp8
 ```
 3. Set up Python environment:
 ```
-conda activate -n comfyui python=3.10
+conda create -n comfyui python=3.10
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r requirements-miner.txt
 python -m pip install -r requirements-comfyui.txt
