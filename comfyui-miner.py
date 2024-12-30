@@ -29,8 +29,29 @@ class MinerService:
         self.session.headers.update({'Content-Type': 'application/json'})
         self.supported_workflow_ids = WorkflowConfig.get_valid_workflow_ids(workflow_names)
 
+        # Add health check related attributes
+        self.last_health_check = time.time()
+        self.health_check_interval = 10  # Check every 10 seconds
+        self.healthy = True
+
         logger.info(f"MinerService ready with {len(self.supported_workflow_ids)} workflows for miner {self.erc20_address} "
                    f"(workflows: {', '.join(workflow_names)})")
+
+    def check_health(self, startup_check: bool = False) -> bool:
+        """Check ComfyUI server health"""
+        is_running = self.comfyui_instance.is_server_running(startup_check)
+        if startup_check:
+            # During startup, just pass through the status
+            self.healthy = is_running
+            return is_running
+        # Normal operation logging and state management
+        if not is_running and self.healthy:
+            logger.error("ComfyUI service is not responding")
+            self.healthy = False
+        elif is_running and not self.healthy:
+            logger.info("ComfyUI service has recovered")
+            self.healthy = True
+        return self.healthy
 
     def send_miner_request(self, timeout: int = 10) -> Optional[Dict[str, Any]]:
         """Send mining request to the server and return task data if available"""
@@ -186,18 +207,44 @@ class MinerService:
             except Exception as e:
                 logger.exception(f"Failed to submit result: {e}")
 
-    def start_service(self, interval: int = 2) -> None:
-        """Start the mining service loop"""
-        logger.info("Starting mining service")
+    def start_service(self, interval: int = 2, startup_timeout: int = 120) -> None:
+        """Start the mining service loop with health checks"""        
+        # Wait for ComfyUI to become available
+        logger.info("Waiting for ComfyUI service to initialize...")
+        start_time = time.time()
+        while time.time() - start_time < startup_timeout:
+            if self.check_health(startup_check=True):
+                logger.success("ComfyUI service initialization complete. Ready to receive and process tasks.")
+                break
+            time.sleep(2)  # Check every 5 seconds
+            elapsed = int(time.time() - start_time)
+            logger.info(f"Waiting for ComfyUI service... ({elapsed}s elapsed)")
+        else:
+            logger.error(f"ComfyUI service did not become available within {startup_timeout} seconds")
+            return
+
         while True:
             try:
-                task_data = self.send_miner_request()
-                if task_data and task_data.get("task_id") and "running" not in task_data.get("msg", ""):
-                    logger.info(f"Starting new task: {task_data['task_id']}")
-                    threading.Thread(
-                        target=self.handle_task,
-                        args=(task_data["task_id"], task_data)
-                    ).start()
+                # Perform health check if interval has elapsed
+                current_time = time.time()
+                if current_time - self.last_health_check >= self.health_check_interval:
+                    self.check_health()
+                    self.last_health_check = current_time
+
+                # Only process tasks if service is healthy
+                if self.healthy:
+                    task_data = self.send_miner_request()
+                    if task_data and task_data.get("task_id") and "running" not in task_data.get("msg", ""):
+                        logger.info(f"Starting new task: {task_data['task_id']}")
+                        threading.Thread(
+                            target=self.handle_task,
+                            args=(task_data["task_id"], task_data)
+                        ).start()
+                else:
+                    logger.warning("Skipping task processing - ComfyUI service unhealthy")
+                    time.sleep(interval * 2)  # Wait longer when unhealthy
+                    continue
+
             except Exception as e:
                 logger.exception(f"Service loop error: {e}")
             

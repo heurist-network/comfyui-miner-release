@@ -1,102 +1,125 @@
 {
-    "1": {
+    "10": {
         "inputs": {
-            "model": "hunyuan_video_720_cfgdistill_fp8_e4m3fn.safetensors",
-            "base_precision": "bf16",
-            "quantization": "fp8_e4m3fn",
-            "load_device": "offload_device",
-            "attention_mode": "sdpa"
+            "vae_name": "hunyuan_video_vae_bf16.safetensors"
         },
-        "class_type": "HyVideoModelLoader",
+        "class_type": "VAELoader",
         "_meta": {
-            "title": "HunyuanVideo Model Loader"
+            "title": "Load VAE"
         }
     },
-    "3": {
+    "11": {
         "inputs": {
-            "width": 512,
-            "height": 320,
-            "num_frames": 85,
-            "steps": 30,
-            "embedded_guidance_scale": 6,
-            "flow_shift": 9,
-            "seed": 787478337166182,
-            "force_offload": 1,
-            "denoise_strength": 1,
-            "model": [
-                "1",
+            "clip_name1": "clip_l.safetensors",
+            "clip_name2": "llava_llama3_fp8_scaled.safetensors",
+            "type": "hunyuan_video"
+        },
+        "class_type": "DualCLIPLoader",
+        "_meta": {
+            "title": "DualCLIPLoader"
+        }
+    },
+    "12": {
+        "inputs": {
+            "unet_name": "hunyuan_video_t2v_720p_bf16.safetensors",
+            "weight_dtype": "fp8_e4m3fn"
+        },
+        "class_type": "UNETLoader",
+        "_meta": {
+            "title": "Load Diffusion Model"
+        }
+    },
+    "13": {
+        "inputs": {
+            "noise": [
+                "25",
                 0
             ],
-            "hyvid_embeds": [
-                "30",
+            "guider": [
+                "22",
+                0
+            ],
+            "sampler": [
+                "16",
+                0
+            ],
+            "sigmas": [
+                "17",
+                0
+            ],
+            "latent_image": [
+                "45",
                 0
             ]
         },
-        "class_type": "HyVideoSampler",
+        "class_type": "SamplerCustomAdvanced",
         "_meta": {
-            "title": "HunyuanVideo Sampler"
-        }
-    },
-    "5": {
-        "inputs": {
-            "enable_vae_tiling": true,
-            "temporal_tiling_sample_size": 64,
-            "spatial_tile_sample_min_size": 256,
-            "auto_tile_size": true,
-            "vae": [
-                "7",
-                0
-            ],
-            "samples": [
-                "3",
-                0
-            ]
-        },
-        "class_type": "HyVideoDecode",
-        "_meta": {
-            "title": "HunyuanVideo Decode"
-        }
-    },
-    "7": {
-        "inputs": {
-            "model_name": "hunyuan_video_vae_bf16.safetensors",
-            "precision": "bf16"
-        },
-        "class_type": "HyVideoVAELoader",
-        "_meta": {
-            "title": "HunyuanVideo VAE Loader"
+            "title": "SamplerCustomAdvanced"
         }
     },
     "16": {
         "inputs": {
-            "llm_model": "Kijai/llava-llama-3-8b-text-encoder-tokenizer",
-            "clip_model": "openai/clip-vit-large-patch14",
-            "precision": "fp16",
-            "apply_final_norm": false,
-            "hidden_state_skip_layer": 2,
-            "quantization": "disabled"
+            "sampler_name": "euler"
         },
-        "class_type": "DownloadAndLoadHyVideoTextEncoder",
+        "class_type": "KSamplerSelect",
         "_meta": {
-            "title": "(Down)Load HunyuanVideo TextEncoder"
+            "title": "KSamplerSelect"
         }
     },
-    "30": {
+    "17": {
         "inputs": {
-            "prompt": "high quality nature video of a panda balancing on a bamboo stick while a bird lands on the panda's head, there's a waterfall in the background",
-            "force_offload": "bad quality video",
-            "prompt_template": "video",
-            "text_encoders": [
-                "16",
+            "scheduler": "simple",
+            "steps": 20,
+            "denoise": 1,
+            "model": [
+                "12",
                 0
             ]
         },
-        "class_type": "HyVideoTextEncode",
+        "class_type": "BasicScheduler",
         "_meta": {
-            "title": "HunyuanVideo TextEncode"
+            "title": "BasicScheduler"
         }
     },
-    "34": {
+    "22": {
+        "inputs": {
+            "model": [
+                "67",
+                0
+            ],
+            "conditioning": [
+                "26",
+                0
+            ]
+        },
+        "class_type": "BasicGuider",
+        "_meta": {
+            "title": "BasicGuider"
+        }
+    },
+    "25": {
+        "inputs": {
+            "noise_seed": 1082200004330627
+        },
+        "class_type": "RandomNoise",
+        "_meta": {
+            "title": "RandomNoise"
+        }
+    },
+    "26": {
+        "inputs": {
+            "guidance": 6,
+            "conditioning": [
+                "44",
+                0
+            ]
+        },
+        "class_type": "FluxGuidance",
+        "_meta": {
+            "title": "FluxGuidance"
+        }
+    },
+    "40": {
         "inputs": {
             "frame_rate": 24,
             "loop_count": 0,
@@ -108,13 +131,69 @@
             "pingpong": false,
             "save_output": true,
             "images": [
-                "5",
+                "73",
                 0
             ]
         },
         "class_type": "VHS_VideoCombine",
         "_meta": {
             "title": "Video Combine 🎥🅥🅗🅢"
+        }
+    },
+    "44": {
+        "inputs": {
+            "text": "On a busy Tokyo street, the camera descends to show the vibrant city. Modern buildings and shops line the street, with a neon-lit convenience store. The shot moves to a vending machine",
+            "clip": [
+                "11",
+                0
+            ]
+        },
+        "class_type": "CLIPTextEncode",
+        "_meta": {
+            "title": "CLIP Text Encode (Positive Prompt)"
+        }
+    },
+    "45": {
+        "inputs": {
+            "width": 848,
+            "height": 480,
+            "length": 73,
+            "batch_size": 1
+        },
+        "class_type": "EmptyHunyuanLatentVideo",
+        "_meta": {
+            "title": "EmptyHunyuanLatentVideo"
+        }
+    },
+    "67": {
+        "inputs": {
+            "shift": 7,
+            "model": [
+                "12",
+                0
+            ]
+        },
+        "class_type": "ModelSamplingSD3",
+        "_meta": {
+            "title": "ModelSamplingSD3"
+        }
+    },
+    "73": {
+        "inputs": {
+            "tile_size": 256,
+            "overlap": 64,
+            "samples": [
+                "13",
+                0
+            ],
+            "vae": [
+                "10",
+                0
+            ]
+        },
+        "class_type": "VAEDecodeTiled",
+        "_meta": {
+            "title": "VAE Decode (Tiled)"
         }
     }
 }
