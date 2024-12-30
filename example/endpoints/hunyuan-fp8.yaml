@@ -1,7 +1,7 @@
 name: Hunyuan Video Generation
 description: Generate a video from text prompt using Hunyuan model
 tip: This workflow generates high-quality videos using the Hunyuan video model
-comfyui_output_node_id: 34  # Matches the VHS_VideoCombine node ID
+comfyui_output_node_id: 40  # Updated to match the new VHS_VideoCombine node ID
 
 parameters:
   - name: prompt
@@ -10,15 +10,15 @@ parameters:
     type: string
     required: true
     comfyui:
-      node_id: 30
+      node_id: 44  # Updated to match the new CLIPTextEncode node ID
       field: inputs
-      subfield: prompt
+      subfield: text  # Changed from 'prompt' to 'text' as that's the parameter name in CLIPTextEncode
 
 # The following parameters are hard-coded in the workflow:
-# - width: 512
-# - height: 320
-# - num_frames: 85
-# - steps: 30
+# - width: 848
+# - height: 480
+# - num_frames: 73
+# - steps: 20
 # - fps: 24 (in Video Combine node)
-# - embedded_guidance_scale: 6
-# - seed: 787478337166182
+# - guidance_scale: 6 
+# - seed: 1082200004330627
