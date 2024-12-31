@@ -102,25 +102,30 @@ def setup_comfyui(snapshot_path, comfyui_home):
     
     # Check if ComfyUI is actually installed by looking for main.py
     if not os.path.exists(os.path.join(comfyui_home, "main.py")):
-        print(f"Cloning ComfyUI repository to {comfyui_home}")
-        # Create directory if it doesn't exist
-        os.makedirs(comfyui_home, exist_ok=True)
+        print(f"Setting up ComfyUI in {comfyui_home}")
         
-        # Only remove files in the root directory, preserve mounted volumes
-        for item in os.listdir(comfyui_home):
-            item_path = os.path.join(comfyui_home, item)
-            if item not in ['models', 'custom_nodes']:  # Skip mounted volumes
-                if os.path.isfile(item_path):
-                    os.remove(item_path)
-                elif os.path.isdir(item_path):
-                    shutil.rmtree(item_path)
-                
-        repo = Repo.init(comfyui_home)
-        origin = repo.create_remote("origin", comfyui_repo)
-        origin.fetch()
-        repo.git.checkout(snapshot["comfyui"])
-    
-        # Install requirements only after repository is cloned
+        # Create a temporary directory for initial clone
+        with tempfile.TemporaryDirectory() as temp_dir:
+            print("Cloning ComfyUI to temporary location...")
+            temp_repo = Repo.clone_from(comfyui_repo, temp_dir)
+            temp_repo.git.checkout(snapshot["comfyui"])
+            
+            # Copy files to final location, excluding models and custom_nodes directories
+            os.makedirs(comfyui_home, exist_ok=True)
+            for item in os.listdir(temp_dir):
+                if item not in ['models', 'custom_nodes']:
+                    src = os.path.join(temp_dir, item)
+                    dst = os.path.join(comfyui_home, item)
+                    if os.path.isfile(src):
+                        shutil.copy2(src, dst)
+                    else:
+                        shutil.copytree(src, dst)
+
+            # Create directories if they don't exist
+            os.makedirs(os.path.join(comfyui_home, 'models'), exist_ok=True)
+            os.makedirs(os.path.join(comfyui_home, 'custom_nodes'), exist_ok=True)
+
+        # Install requirements
         requirements_path = os.path.join(comfyui_home, "requirements.txt")
         if os.path.exists(requirements_path):
             print("Installing ComfyUI requirements...")
