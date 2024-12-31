@@ -9,14 +9,16 @@ services:
     environment:
       - WORKFLOW_NAMES=${WORKFLOW_NAMES}
     volumes:
-      - comfyui_data:/root/ComfyUI
+      - comfyui_code:/root/ComfyUI
+      - comfyui_models:/root/ComfyUI/models
+      - comfyui_custom_nodes:/root/ComfyUI/custom_nodes
 
   comfyui:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.comfyui
     image: heuristai/comfyui-release:comfyui
-    restart: unless-stopped
+    restart: on-failure:3 
     container_name: comfyui-container-gpu${GPU_DEVICE_ID:-0}-${COMFYUI_PORT:-8188}
     runtime: nvidia
     deploy:
@@ -27,11 +29,19 @@ services:
               device_ids: ['${GPU_DEVICE_ID:-0}']
               capabilities: [gpu]
     volumes:
-      - comfyui_data:/root/ComfyUI
+      - comfyui_code:/root/ComfyUI
+      - comfyui_models:/root/ComfyUI/models
+      - comfyui_custom_nodes:/root/ComfyUI/custom_nodes
       - /tmp:/tmp
     environment:
       - COMFYUI_PORT=${COMFYUI_PORT:-8188}
     network_mode: "host"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:${COMFYUI_PORT:-8188}/object_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   miner:
     build:
@@ -49,14 +59,19 @@ services:
               device_ids: ['${GPU_DEVICE_ID:-0}']
               capabilities: [gpu]
     volumes:
-      - comfyui_data:/root/ComfyUI
+      - comfyui_code:/root/ComfyUI
+      - comfyui_models:/root/ComfyUI/models
+      - comfyui_custom_nodes:/root/ComfyUI/custom_nodes
       - ./logs:/app/miner/logs
     environment:
       - COMFYUI_PORT=${COMFYUI_PORT:-8188}
       - ERC20_ADDRESS=${ERC20_ADDRESS}
     network_mode: "host"
     depends_on:
-      - comfyui
+      comfyui:
+        condition: service_healthy
 
 volumes:
-  comfyui_data:
+  comfyui_code:    # For base ComfyUI code
+  comfyui_models:  # Persistent volume for models
+  comfyui_custom_nodes:  # Persistent volume for custom nodes

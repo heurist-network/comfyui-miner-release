@@ -105,13 +105,15 @@ def setup_comfyui(snapshot_path, comfyui_home):
         print(f"Cloning ComfyUI repository to {comfyui_home}")
         # Create directory if it doesn't exist
         os.makedirs(comfyui_home, exist_ok=True)
-        # Remove any existing partial installation
+        
+        # Only remove files in the root directory, preserve mounted volumes
         for item in os.listdir(comfyui_home):
             item_path = os.path.join(comfyui_home, item)
-            if os.path.isfile(item_path):
-                os.remove(item_path)
-            elif os.path.isdir(item_path):
-                shutil.rmtree(item_path)
+            if item not in ['models', 'custom_nodes']:  # Skip mounted volumes
+                if os.path.isfile(item_path):
+                    os.remove(item_path)
+                elif os.path.isdir(item_path):
+                    shutil.rmtree(item_path)
                 
         repo = Repo.init(comfyui_home)
         origin = repo.create_remote("origin", comfyui_repo)
@@ -135,6 +137,7 @@ def setup_comfyui(snapshot_path, comfyui_home):
 
     # Install custom nodes
     print("Installing custom nodes...")
+    os.makedirs(os.path.join(comfyui_home, "custom_nodes"), exist_ok=True)
     for url, node in snapshot["git_custom_nodes"].items():
         hash = node["hash"]
         repo_name = url.split("/")[-1].replace(".git", "")
@@ -148,8 +151,10 @@ def setup_comfyui(snapshot_path, comfyui_home):
                 if current_hash == hash:
                     print(f"Custom node {repo_name} already installed with correct hash, skipping")
                     continue
+                else:
+                    shutil.rmtree(repo_dir)  # Only remove if hash doesn't match
             except Exception:
-                pass
+                shutil.rmtree(repo_dir)  # Remove if can't check hash
         
         clone_and_install(url, hash, clone_to=repo_dir)
 
