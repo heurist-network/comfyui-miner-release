@@ -108,23 +108,28 @@ def setup_comfyui(snapshot_path, comfyui_home):
         # Create a temporary directory for initial clone
         with tempfile.TemporaryDirectory() as temp_dir:
             print("Cloning ComfyUI to temporary location...")
-            temp_repo = Repo.clone_from(comfyui_repo, temp_dir)
+            # Create a subdirectory for the clean clone
+            clone_dir = os.path.join(temp_dir, "ComfyUI")
+            temp_repo = Repo.clone_from(comfyui_repo, clone_dir)
             temp_repo.git.checkout(snapshot["comfyui"])
             
-            # Copy files to final location, excluding models and custom_nodes directories
+            # Copy files to final location
             os.makedirs(comfyui_home, exist_ok=True)
-            for item in os.listdir(temp_dir):
-                if item not in ['models', 'custom_nodes']:
-                    src = os.path.join(temp_dir, item)
-                    dst = os.path.join(comfyui_home, item)
-                    if os.path.isfile(src):
-                        shutil.copy2(src, dst)
-                    else:
-                        shutil.copytree(src, dst)
-
-            # Create directories if they don't exist
-            os.makedirs(os.path.join(comfyui_home, 'models'), exist_ok=True)
-            os.makedirs(os.path.join(comfyui_home, 'custom_nodes'), exist_ok=True)
+            for item in os.listdir(clone_dir):
+                if item == 'models':
+                    continue  # Skip models directory
+                src = os.path.join(clone_dir, item)
+                dst = os.path.join(comfyui_home, item)
+                if os.path.isfile(src):
+                    shutil.copy2(src, dst)
+                elif item == 'custom_nodes':
+                    # Copy everything in custom_nodes
+                    os.makedirs(dst, exist_ok=True)
+                    for file in os.listdir(src):
+                        if os.path.isfile(os.path.join(src, file)):
+                            shutil.copy2(os.path.join(src, file), os.path.join(dst, file))
+                else:
+                    shutil.copytree(src, dst)
 
         # Install requirements
         requirements_path = os.path.join(comfyui_home, "requirements.txt")
