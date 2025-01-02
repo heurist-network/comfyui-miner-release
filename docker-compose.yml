@@ -64,7 +64,7 @@ services:
       - comfyui_models:/root/ComfyUI/models
       - comfyui_custom_nodes:/root/ComfyUI/custom_nodes
       - ./logs:/app/miner/logs
-    command: python3 /app/miner/comfyui-miner.py  # Specify the full path
+    command: python3 /app/miner/comfyui_miner.py  # Specify the full path
     environment:
       - COMFYUI_PORT=${COMFYUI_PORT:-8188}
       - ERC20_ADDRESS=${ERC20_ADDRESS}

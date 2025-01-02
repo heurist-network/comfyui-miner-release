@@ -20,4 +20,4 @@ RUN pip install --upgrade pip setuptools wheel && \
 ENV PYTHONUNBUFFERED=1
 
 # Run the miner
-CMD ["python3", "comfyui-miner.py"]
+CMD ["python3", "comfyui_miner.py"]
