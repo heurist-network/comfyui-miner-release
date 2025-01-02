@@ -2,6 +2,12 @@
 
 Virtual ComfyUI service that can be imported and run inside a python process. This project consists of two parts: a Docker-based ComfyUI service and a Python miner script that interacts with a task server.
 
+> **Note:** If you're unable to use Docker or prefer a non-Docker setup, please checkout the `feature/non-docker-runtime` branch:
+> ```bash
+> git checkout feature/non-docker-runtime
+> ```
+> and follow the instructions in that branch's README.
+
 ### Prerequisites
 - `Docker` or `Docker Compose` installed ([Installation Guide](docs/README_Docker.md))
 - `Nvidia Container Toolkit` installed ([Installation Guide](docs/README_Container_Toolkit.md))
