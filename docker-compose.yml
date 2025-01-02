@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.setup
-    image: heuristai/comfyui-release:setup
+    image: heuristai/comfyui-release:setup-${VERSION:-latest}
     environment:
       - WORKFLOW_NAMES=${WORKFLOW_NAMES}
     volumes:
@@ -17,7 +17,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.comfyui
-    image: heuristai/comfyui-release:comfyui
+    image: heuristai/comfyui-release:comfyui-${VERSION:-latest}
     restart: on-failure:3 
     container_name: comfyui-container-gpu${GPU_DEVICE_ID:-0}-${COMFYUI_PORT:-8188}
     runtime: nvidia
@@ -47,7 +47,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.miner
-    image: heuristai/comfyui-release:miner
+    image: heuristai/comfyui-release:miner-${VERSION:-latest}
     restart: unless-stopped
     container_name: miner-gpu${GPU_DEVICE_ID:-0}-${COMFYUI_PORT:-8188}
     runtime: nvidia
