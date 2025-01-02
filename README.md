@@ -46,8 +46,8 @@ You can configure the service using environment variables:
 
 1. Clone the repository:
 ```
-git clone https://github.com/your-repo/comfyui-miner.git
-cd comfyui-miner
+git clone https://github.com/your-repo/comfyui-miner-release.git
+cd comfyui-miner-release
 ```
 2. Create a .env file in the project root with your configuration:
 ```
