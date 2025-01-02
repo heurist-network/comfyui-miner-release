@@ -28,7 +28,7 @@ WORKFLOW_NAMES=hunyuan-fp8
 ```
 3. Pull and setup:
 ```bash
-docker-compose pull
+docker-compose pull (# Note: ComfyUI image is ~13GB, initial download may take some time)
 docker-compose run --rm setup
 ```
 3. Start services:
