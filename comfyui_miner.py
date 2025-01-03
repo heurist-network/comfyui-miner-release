@@ -12,13 +12,14 @@ from requests import Session
 from typing import Dict, Any, Optional
 from multiprocessing import current_process
 from comfyui_service.comfyui import ComfyUI
-from utils.config_utils import load_config, setup_logging
+from utils.config_utils import load_config, setup_logging, validate_erc20_address
 from utils.workflow_utils import WorkflowConfig
 from utils.task_utils import TaskProcessor
 
 class MinerService:
     """MinerService class for handling mining tasks and submitting results."""
     def __init__(self, base_url: str, erc20_address: str, comfyui_instance: ComfyUI, s3_bucket: str, workflow_names: str):
+        validate_erc20_address(erc20_address)
         self.base_url = base_url
         self.erc20_address = erc20_address
         self.comfyui_instance = comfyui_instance
@@ -27,6 +28,8 @@ class MinerService:
 
         self.session = Session()
         self.session.headers.update({'Content-Type': 'application/json'})
+        self.server_connected = True  # Initially assume connected
+
         self.supported_workflow_ids = WorkflowConfig.get_valid_workflow_ids(workflow_names)
 
         # Add health check related attributes
@@ -56,7 +59,7 @@ class MinerService:
     def send_miner_request(self, timeout: int = 10) -> Optional[Dict[str, Any]]:
         """Send mining request to the server and return task data if available"""
         max_retries = 3
-        base_wait = 2  # Start with 2 seconds wait
+        base_wait = 2
 
         for attempt in range(max_retries):
             try:
@@ -66,29 +69,38 @@ class MinerService:
                         f"{self.base_url}/miner_request",
                         json={
                             'erc20_address': self.erc20_address,
-                            'workflow_ids': self.supported_workflow_ids,  # Send all supported workflow IDs
+                            'workflow_ids': self.supported_workflow_ids,
                         },
                         timeout=timeout
                     )
 
                     if response.status_code == 200:
-                        task_data = response.json()
-                        logger.debug(f"Received response: {task_data}")
-                        return task_data
+                        # Server is back online if it was previously disconnected
+                        if not self.server_connected:
+                            logger.success("Connection to server restored - back online")
+                            self.server_connected = True
+                        return response.json()
                     else:
-                        wait_time = base_wait * (2 ** attempt)  # Exponential backoff
+                        wait_time = base_wait * (2 ** attempt)
                         logger.warning(f"Request failed with status {response.status_code}, retrying in {wait_time}s...")
+                        self.server_connected = False
                         time.sleep(wait_time)
 
             except (requests.Timeout, requests.ConnectionError) as e:
                 wait_time = base_wait * (2 ** attempt)
+                if self.server_connected:
+                    logger.error(f"Lost connection to server: {str(e)}")
+                    self.server_connected = False
                 logger.warning(f"Connection error: {str(e)}, retrying in {wait_time}s...")
                 time.sleep(wait_time)
             except Exception as e:
                 logger.exception(f"Request error: {e}")
+                self.server_connected = False
                 return None
 
-        logger.error("Max retries reached, giving up")
+        if self.server_connected:
+            logger.error("Lost connection to server - max retries reached")
+            self.server_connected = False
         return None
 
     def handle_task(self, task_id: str, task_data: Dict[str, Any]) -> None:
@@ -281,10 +293,6 @@ def main():
             [w.strip() for w in (args.workflows or '').split(',') if w.strip()] or 
             config['installation']['workflow_names']
         )
-
-        if not Web3.is_address(erc20_address):
-            logger.error(f"Invalid ERC20 address: {erc20_address}")
-            raise ValueError("Invalid ERC20 address format")
         
         comfyui_instance = ComfyUI(config, server_port=str(port))
         logger.info(f"ComfyUI client configured for port {port}")

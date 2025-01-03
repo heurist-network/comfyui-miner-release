@@ -1,6 +1,7 @@
 import os
 import sys
 import toml
+from web3 import Web3
 from pathlib import Path
 from loguru import logger
 
@@ -54,3 +55,10 @@ def load_config(filename='config.toml'):
     except toml.TomlDecodeError:
         logger.error(f"Error decoding the TOML configuration file {filename}")
         raise ValueError(f"Error decoding the TOML configuration file {filename}")
+
+def validate_erc20_address(address: str) -> bool:
+    """Validate ERC20 address format"""
+    if not Web3.is_address(address):
+        logger.error(f"Invalid ERC20 address: {address}")
+        raise ValueError("Invalid ERC20 address format")
+    return True
