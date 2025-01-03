@@ -110,74 +110,68 @@ class WorkflowConfig:
 
     @classmethod
     def validate(cls, workflows: Optional[Union[str, List[str]]] = None) -> Dict[str, Dict]:
-        """Validate one or more workflows. Accepts either workflow name(s) or workflow ID(s)."""
+        """Validate one or more workflows and their required components."""
         cls.load_config()
         results = {}
         
-        # Convert input to list if single string
-        if isinstance(workflows, str):
-            workflows = [workflows]
-        
-        # If no workflows specified, validate all
-        if not workflows:
-            workflows = list(cls._config["workflow_name_mappings"].keys())
+        # Normalize input to list
+        workflows = ([workflows] if isinstance(workflows, str) 
+                    else workflows or list(cls._config["workflow_name_mappings"].keys()))
 
         for workflow in workflows:
-            # Determine if this is a workflow name or ID
-            if workflow in cls._config["workflow_name_mappings"]:
-                workflow_ids = cls.get_supported_workflow_ids(workflow)
-                key = workflow
-            else:
-                workflow_ids = [workflow]
-                for name, ids in cls._config["workflow_name_mappings"].items():
-                    if workflow in ids:
-                        key = name
-                        break
-                else:
-                    key = workflow
+            # Map workflow name/id to result key and workflow ids
+            workflow_ids = (cls.get_supported_workflow_ids(workflow) 
+                        if workflow in cls._config["workflow_name_mappings"] 
+                        else [workflow])
+            key = workflow if workflow in cls._config["workflow_name_mappings"] else next(
+                (name for name, ids in cls._config["workflow_name_mappings"].items() 
+                if workflow in ids), workflow)
 
-            result = {
-                "valid": True,
-                "missing_components": [],
-                "workflow_ids": workflow_ids
-            }
+            result = {"valid": True, "missing_components": [], "workflow_ids": workflow_ids}
 
             for workflow_id in workflow_ids:
+                # Validate snapshot existence and structure
                 snapshot = cls._load_snapshot(workflow_id)
                 if not snapshot:
-                    result["valid"] = False
-                    result["missing_components"].append(f"Missing or invalid snapshot for workflow ID: {workflow_id}")
+                    result.update({
+                        "valid": False,
+                        "missing_components": [f"Missing or invalid snapshot for workflow ID: {workflow_id}"]
+                    })
                     continue
 
+                # Validate required snapshot fields
+                missing_fields = {"comfyui", "git_custom_nodes", "downloads"} - set(snapshot.keys())
+                if missing_fields:
+                    result.update({
+                        "valid": False,
+                        "missing_components": [f"Snapshot missing required fields: {', '.join(missing_fields)}"]
+                    })
+                    continue
+
+                # Validate component existence in ComfyUI installation
                 comfyui_path = cls._get_comfyui_path()
-                
-                # Validate custom nodes and models
                 custom_nodes_path = os.path.join(comfyui_path, "custom_nodes")
-                
-                # Check git custom nodes
-                for repo_url, node_info in snapshot.get("git_custom_nodes", {}).items():
-                    repo_name = repo_url.split("/")[-1].replace(".git", "")
-                    node_path = os.path.join(custom_nodes_path, repo_name)
+
+                # Check git nodes, file nodes, and model files
+                missing = []
+                for repo_url, _ in snapshot["git_custom_nodes"].items():
+                    node_path = os.path.join(custom_nodes_path, repo_url.split("/")[-1].replace(".git", ""))
                     if not os.path.exists(node_path):
-                        result["valid"] = False
-                        result["missing_components"].append(f"Missing custom node: {repo_name}")
+                        missing.append(f"Missing custom node: {repo_url.split('/')[-1].replace('.git', '')}")
 
-                # Check file custom nodes
                 for node in snapshot.get("file_custom_nodes", []):
-                    if not node.get("disabled", False):
-                        node_path = os.path.join(custom_nodes_path, node["filename"])
-                        if not os.path.exists(node_path):
-                            result["valid"] = False
-                            result["missing_components"].append(f"Missing custom node file: {node['filename']}")
+                    if not node.get("disabled") and not os.path.exists(os.path.join(custom_nodes_path, node["filename"])):
+                        missing.append(f"Missing custom node file: {node['filename']}")
 
-                # Check model files
-                for model_path in snapshot.get("downloads", {}).keys():
-                    full_path = os.path.join(comfyui_path, model_path)
-                    if not os.path.exists(full_path):
-                        result["valid"] = False
-                        result["missing_components"].append(f"Missing model: {model_path}")
+                for model_path in snapshot["downloads"].keys():
+                    if not os.path.exists(os.path.join(comfyui_path, model_path)):
+                        missing.append(f"Missing model: {model_path}")
+
+                if missing:
+                    result.update({"valid": False, "missing_components": missing})
 
             results[key] = result
+            
         logger.info(f"Workflow validation results: {results}")
         return results
 
