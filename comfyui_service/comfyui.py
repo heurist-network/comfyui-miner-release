@@ -11,6 +11,7 @@ import threading
 import tempfile
 import urllib.request
 import websocket
+from contextlib import contextmanager
 from timeit import default_timer as timer
 from urllib.error import URLError
 from loguru import logger
@@ -40,46 +41,54 @@ class ComfyUI:
         self.id = uuid.uuid4()
         self.t0 = timer()
 
-    # TODO: should support more flexible parameters
+    @contextmanager
+    def temporary_directory(self):
+        temp_dir = tempfile.mkdtemp()
+        try:
+            self.temp_files_dir = temp_dir
+            yield temp_dir
+        finally:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
     def run_workflow(self, workflow_file, endpoint_file, config, client_id=None):
         try:
             if client_id is None:
                 client_id = str(uuid.uuid4())
 
-            self.temp_files_dir = tempfile.mkdtemp()
+            with self.temporary_directory() as temp_dir:
+                with open(workflow_file, 'r') as file:
+                    workflow = json.load(file)
+                
+                with open(endpoint_file, 'r') as file:
+                    endpoint = yaml.safe_load(file)
+                    output_node_id = str(endpoint["comfyui_output_node_id"])
 
-            with open(workflow_file, 'r') as file:
-                workflow = json.load(file)
-            
-            with open(endpoint_file, 'r') as file:
-                endpoint = yaml.safe_load(file)
-                output_node_id = str(endpoint["comfyui_output_node_id"])
+                args, msg = prepare_args(endpoint_file, config, save_files=True)
+                if msg is not None:
+                    return {"error": msg}
+                
+                workflow = self.inject_args_into_workflow(endpoint_file, workflow_file, args)
+                outputs = self.get_outputs(workflow, client_id)
 
-            args, msg = prepare_args(endpoint_file, config, save_files=True)
-            if msg is not None:
-                return {"error": msg}
-            
-            workflow = self.inject_args_into_workflow(endpoint_file, workflow_file, args)
-            outputs = self.get_outputs(workflow, client_id)
+                if output_node_id not in outputs:
+                    logger.error(f"No output found for node id {output_node_id}")
+                    return {"error": f"No output found for node id {output_node_id}"}
 
-            if output_node_id not in outputs: 
-                print("No output found for node id", output_node_id)
+                outputs = outputs[output_node_id]
+                if not outputs or len(outputs) == 0:
+                    return {"error": "No outputs generated"}
 
-            # retrive the specific output file path
-            outputs = outputs[output_node_id]
-            if len(outputs) > 0:
                 output_file_path = outputs[0]
-            
-            # clean up
-            shutil.rmtree(self.temp_files_dir)
+                if not output_file_path or not os.path.exists(output_file_path):
+                    return {"error": "Output file not found"}
 
-            return output_file_path
-        
+                return output_file_path
+
         except Exception as e:
-            print("Error running workflow:", e)
+            logger.exception("Error running workflow")
             return {"error": str(e)}
     
-        
     def inject_args_into_workflow(self, endpoint_file, workflow_file, args):
         with open(endpoint_file, 'r') as file:
             endpoint = Endpoint(**yaml.safe_load(file))

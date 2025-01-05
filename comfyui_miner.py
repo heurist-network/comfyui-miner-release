@@ -168,7 +168,7 @@ class MinerService:
             )
 
             if not upload_latency:
-                logger.error("Failed to upload result")
+                logger.error(f"Failed to upload result for task {task_id}")
                 self.submit_result(task_id, "", inference_latency, 0, False, "Upload failed")
                 return
 
@@ -210,7 +210,7 @@ class MinerService:
                     )
 
                     if response.status_code == 200:
-                        logger.success(f"Result submitted successfully")
+                        logger.success(f"Result submitted successfully for task {task_id}")
                     else:
                         logger.error(f"Submit failed with status code: {response.status_code}")
 
