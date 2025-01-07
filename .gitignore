@@ -166,3 +166,9 @@ cython_debug/
 
 # ComfyUI repo
 ComfyUI/
+
+# Test coverage
+bin/
+.coverage
+coverage.xml
+htmlcov/
