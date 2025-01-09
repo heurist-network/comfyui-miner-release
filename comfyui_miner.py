@@ -151,13 +151,13 @@ class MinerService:
                 return
 
             # 3. Result Handling
-            credentials = {
-                "access_key_id": task_data.get("access_key_id"),
-                "secret_access_key": task_data.get("secret_access_key"),
-                "session_token": task_data.get("session_token"),
-                "miner_address": self.erc20_address
-            }
-            
+            credentials = task_data.get('credential', {})
+            if not credentials:
+                logger.error("No credentials provided in task data")
+                self.submit_result(task_id, "", inference_latency, 0, False, "Missing credentials")
+                return
+            credentials['miner_address'] = self.erc20_address
+
             s3_key, upload_latency = TaskProcessor.handle_output(
                 task_id,
                 task_type,

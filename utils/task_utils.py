@@ -79,7 +79,6 @@ class TaskProcessor:
         try:
             # If it's a video file (webp), use the upload endpoint
             if s3_key.endswith(('.mp4', '.webp')):
-                # Create AWS auth session using the credentials
                 auth = AWS4Auth(
                     credentials["access_key_id"],
                     credentials["secret_access_key"],
