@@ -162,7 +162,7 @@ class MinerService:
                 task_id,
                 task_type,
                 output_data,
-                credentials,
+                task_data,
                 workflow_id,
                 self.s3_bucket
             )
