@@ -9,6 +9,7 @@ services:
     environment:
       - WORKFLOW_NAMES=${WORKFLOW_NAMES}
     volumes:
+      - ./:/app/miner  # Mount the current directory to /app/miner
       - comfyui_code:/root/ComfyUI
       - comfyui_models:/root/ComfyUI/models
       - comfyui_custom_nodes:/root/ComfyUI/custom_nodes

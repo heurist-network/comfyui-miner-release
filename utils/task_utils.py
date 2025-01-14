@@ -75,58 +75,39 @@ class TaskProcessor:
                     file_path: str,
                     bucket: str,
                     s3_key: str) -> Optional[float]:
-        """Upload file to S3 and return upload latency"""
+        """Upload file to S3 via upload-video endpoint and return upload latency"""
         try:
-            # If it's a video file (webp), use the upload endpoint
-            if s3_key.endswith(('.mp4', '.webp')):
-                auth = AWS4Auth(
-                    credentials["access_key_id"],
-                    credentials["secret_access_key"],
-                    'us-east-1',
-                    'execute-api',
-                    session_token=credentials["session_token"]
-                )
+            auth = AWS4Auth(
+                credentials["access_key_id"],
+                credentials["secret_access_key"],
+                'us-east-1',
+                'execute-api',
+                session_token=credentials["session_token"]
+            )
 
-                with open(file_path, 'rb') as file:
-                    video_content = base64.b64encode(file.read()).decode('utf-8')
-                
-                start_time = time.time()
-                response = requests.post(
-                    'https://1ukui6ppcf.execute-api.us-east-1.amazonaws.com/dev/upload-video',
-                    json={
-                        'video': video_content,
-                        'filename': s3_key
-                    },
-                    auth=auth
-                )
-                upload_latency = time.time() - start_time
+            with open(file_path, 'rb') as file:
+                file_content = base64.b64encode(file.read()).decode('utf-8')
+            
+            start_time = time.time()
+            response = requests.post(
+                'https://1ukui6ppcf.execute-api.us-east-1.amazonaws.com/dev/upload-video',
+                json={
+                    'file': file_content,
+                    'filename': s3_key
+                },
+                auth=auth
+            )
+            upload_latency = time.time() - start_time
 
-                if response.status_code != 200:
-                    logger.error(f"Failed to upload video via endpoint: {response.text}")
-                    return None
+            if response.status_code != 200:
+                logger.error(f"Failed to upload file via endpoint: {response.text}")
+                return None
 
-                logger.debug(f"Video uploaded successfully with key {s3_key}")
-                return upload_latency
-
-            # For other files, use direct S3 upload
-            else:
-                s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=credentials["access_key_id"],
-                    aws_secret_access_key=credentials["secret_access_key"],
-                    aws_session_token=credentials["session_token"]
-                )
-
-                with open(file_path, 'rb') as file:
-                    start_time = time.time()
-                    s3_client.put_object(Body=file, Bucket=bucket, Key=s3_key)
-                    upload_latency = time.time() - start_time
-
-                logger.debug(f"File uploaded to S3 bucket {bucket} with key {s3_key}")
-                return upload_latency
+            logger.debug(f"File uploaded successfully with key {s3_key}")
+            return upload_latency
 
         except Exception as e:
-            logger.error(f"Failed to upload file to S3: {e}")
+            logger.error(f"Failed to upload file: {e}")
             return None
 
     @classmethod
@@ -151,8 +132,11 @@ class TaskProcessor:
             # Generate S3 key based on configuration
             if task_type == 'txt2vid':
                 s3_key = f"test-video/{output_config['prefix']}-{credentials['miner_address']}-{task_id}.{output_config['format']}"
+            elif task_type == 'txt2img':
+                s3_key = f"flux-lora/{output_config['prefix']}-{credentials['miner_address']}-{task_id}.{output_config['format']}"
             else:
-                s3_key = f"{task_id}.jpg"
+                logger.error(f"Invalid task type: {task_type}")
+                return "", None
             
             # Upload to S3
             upload_latency = cls._upload_to_s3(credentials, processed_path, bucket, s3_key)

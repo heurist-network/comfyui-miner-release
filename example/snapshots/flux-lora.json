@@ -1,0 +1,45 @@
+{
+    "comfyui": "1419dee9156051aed322c55c7ad8b14fddb7d2d3",
+    "git_custom_nodes": {
+        "https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes": {
+            "hash": "d78b780ae43fcf8c6b7c6505e6ffb4584281ceca",
+            "disabled": false
+        },
+        "https://github.com/kijai/ComfyUI-KJNodes": {
+            "hash": "7c1228a5a3861e0ad4c5bf68aa8360935022b587",
+            "disabled": false
+        },
+        "https://github.com/ltdrdata/ComfyUI-Manager.git": {
+            "hash": "95868c071baaa73811edad83401af643577db5c8",
+            "disabled": false
+        },
+        "https://github.com/yolain/ComfyUI-Easy-Use": {
+            "hash": "2269e2795233d2abb55e6a9acfdf2978bede8508",
+            "disabled": false
+        }
+    },
+    "file_custom_nodes": [
+        {
+            "filename": "websocket_image_save.py",
+            "disabled": false
+        }
+    ],
+    "downloads": {
+        "models/clip/clip_l.safetensors": "https://files.heurist.xyz/clip_l.safetensors",
+        "models/vae/ae.safetensors": "https://files.heurist.xyz/ae.safetensors",
+        "models/clip/t5xxl_fp8_e4m3fn.safetensors": "https://files.heurist.xyz/t5xxl_fp8_e4m3fn.safetensors",
+        "models/unet/flux1-dev.safetensors": "https://files.heurist.xyz/flux1-dev.safetensors",
+        "models/loras/gecko.safetensors": "https://files.heurist.xyz/gecko.safetensors",
+        "models/loras/agentzero.safetensors": "https://files.heurist.xyz/agentzero.safetensors",
+        "models/loras/michaeltaolor.safetensors": "https://files.heurist.xyz/michaeltaolor.safetensors",
+        "models/loras/heuristlogo.safetensors": "https://files.heurist.xyz/heuristlogo.safetensors",
+        "models/loras/angel.safetensors": "https://files.heurist.xyz/angel.safetensors",
+        "models/loras/kook.safetensors": "https://files.heurist.xyz/kook.safetensors",
+        "models/loras/agentmax.safetensors": "https://files.heurist.xyz/agentmax.safetensors",
+        "models/loras/interncharacter.safetensors": "https://files.heurist.xyz/interncharacter.safetensors",
+        "models/loras/baselogo.safetensors": "https://files.heurist.xyz/baselogo.safetensors",
+        "models/loras/internlogo.safetensors": "https://files.heurist.xyz/internlogo.safetensors",
+        "models/loras/taologo.safetensors": "https://files.heurist.xyz/taologo.safetensors",
+        "models/loras/wsb.safetensors": "https://files.heurist.xyz/wsb.safetensors"
+    }
+}

@@ -11,6 +11,13 @@ from tqdm import tqdm
 from pathlib import Path
 from git import Repo, GitCommandError
 
+def get_comfyui_path(config):
+    """Determine correct ComfyUI path based on environment"""
+    if os.path.exists('/.dockerenv'):
+        return config['installation']['docker_comfyui_home']
+    else:
+        return config['installation']['comfyui_home']
+
 def get_example_path():
     """Get the absolute path to the example directory"""
     root_dir = Path(__file__).resolve().parents[1]  # Go up two levels from install.py
@@ -25,6 +32,7 @@ def load_config():
         return toml.load(f)
 
 def get_remote_file_size(url):
+    """Get the size of a remote file"""
     try:
         response = httpx.head(url, follow_redirects=True)
         return int(response.headers.get('Content-Length', 0))
@@ -33,6 +41,7 @@ def get_remote_file_size(url):
         return 0
 
 def download_models(downloads, comfyui_home, size_threshold=1024):
+    """Download models from a list of URLs"""
     for file_path, url in downloads.items():
         local_filepath = Path(comfyui_home, file_path)
         local_filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -62,6 +71,7 @@ def download_models(downloads, comfyui_home, size_threshold=1024):
                     num_bytes_downloaded = stream.num_bytes_downloaded
 
 def clone_and_install(repo_url, hash, clone_to="repo_dir", retries=5):
+    """Clone and install a custom node from a git repository"""
     print(f"\n===== Installing {repo_url}")
     for t in range(retries):        
         try:
@@ -90,6 +100,8 @@ def clone_and_install(repo_url, hash, clone_to="repo_dir", retries=5):
                     print(f"Error installing requirements: {e.stderr}")
 
 def setup_comfyui(snapshot_path, comfyui_home):
+    """Setup ComfyUI"""
+    print(f"Setting up ComfyUI in {comfyui_home}, with snapshot {snapshot_path}, current working directory {os.getcwd()} and directory contents {os.listdir('.')}")
     if not os.path.exists(snapshot_path):
         print(f"Error: Snapshot file {snapshot_path} does not exist")
         return
@@ -192,7 +204,9 @@ def main():
         workflow_names = installation_config.get('workflow_names', [])
         if isinstance(workflow_names, str):  # For backwards compatibility
             workflow_names = [workflow_names]
-        comfyui_home = installation_config.get('comfyui_home')
+        
+        # Use the Docker path when in Docker environment
+        comfyui_home = get_comfyui_path(config)
 
         if not workflow_names:
             raise ValueError("workflow_names not found in config")

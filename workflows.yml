@@ -18,7 +18,17 @@ workflow_configs:
       prefix: "mochi-fp8"
     description: "Mochi FP8 video generation workflow"
 
+  "3":  # flux-lora
+    workflow: "workflows/flux-lora.json"
+    endpoint: "endpoints/flux-lora.yaml"
+    task_type: "txt2img"
+    output:
+      format: "jpg"
+      prefix: "flux-lora"
+    description: "Flux LoRA Image generation workflow"
+
 # Map installation names to supported workflow IDs
 workflow_name_mappings:
   hunyuan-fp8: ["1"]
   mochi-fp8: ["2"]
+  flux-lora: ["3"]

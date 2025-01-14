@@ -1,0 +1,110 @@
+name: Advanced Flux Text to Image with LoRA
+description: Generate an image using Flux model with LoRA support and advanced sampling parameters
+tip: This workflow uses a custom Flux model with dual CLIP encoding, LoRA, and advanced sampling controls
+comfyui_output_node_id: 12  # Matches the SaveImage node ID
+
+parameters:
+  - name: prompt
+    label: Prompt
+    description: Text prompt for image generation (T5XXL prompt)
+    type: string
+    required: true
+    comfyui:
+      node_id: 67
+      field: inputs
+      subfield: t5xxl
+
+  - name: aspect_ratio
+    label: Aspect Ratio
+    description: Aspect ratio of the generated image
+    type: string
+    default: "custom"
+    options:
+      - "custom"
+      - "1:1 square 1024x1024"
+      - "3:4 portrait 896x1152"
+      - "5:8 portrait 832x1216"
+      - "9:16 portrait 768x1344"
+      - "9:21 portrait 640x1536"
+      - "4:3 landscape 1152x896"
+      - "3:2 landscape 1216x832"
+      - "16:9 landscape 1344x768"
+      - "21:9 landscape 1536x640"
+    comfyui:
+      node_id: 24
+      field: inputs
+      subfield: aspect_ratio
+
+  - name: width
+    label: Width
+    description: Width of the generated image
+    type: int
+    default: 1024
+    minimum: 512
+    maximum: 2048
+    step: 64
+    comfyui:
+      node_id: 24
+      field: inputs
+      subfield: width
+
+  - name: height
+    label: Height
+    description: Height of the generated image
+    type: int
+    default: 768
+    minimum: 512
+    maximum: 2048
+    step: 64
+    comfyui:
+      node_id: 24
+      field: inputs
+      subfield: height
+
+  - name: steps
+    label: Steps
+    description: Number of denoising steps
+    type: int
+    default: 15
+    minimum: 1
+    maximum: 100
+    step: 1
+    comfyui:
+      node_id: 18
+      field: inputs
+      subfield: steps
+
+  - name: strength_model
+    label: LoRA Strength (Model)
+    description: Strength of LoRA effect on the model
+    type: number
+    default: 1.0
+    minimum: 0.0
+    maximum: 1.0
+    step: 0.01
+    comfyui:
+      node_id: 66
+      field: inputs
+      subfield: strength_model
+
+  - name: noise_seed
+    label: Noise Seed
+    description: Random seed for noise generation (use any number for specific seed)
+    type: int
+    default: 966993914913986
+    minimum: 0
+    maximum: 18446744073709551615
+    comfyui:
+      node_id: 20
+      field: inputs
+      subfield: noise_seed
+
+  - name: lora_name
+    label: LoRA Model
+    description: Name of the LoRA model to use
+    type: string
+    default: "gecko.safetensors"
+    comfyui:
+      node_id: 66
+      field: inputs
+      subfield: lora_name

@@ -1,0 +1,248 @@
+{
+    "11": {
+        "inputs": {
+            "samples": [
+                "16",
+                0
+            ],
+            "vae": [
+                "50",
+                0
+            ]
+        },
+        "class_type": "VAEDecode",
+        "_meta": {
+            "title": "VAE Decode"
+        }
+    },
+    "12": {
+        "inputs": {
+            "filename_prefix": "MarkuryFLUX",
+            "images": [
+                "11",
+                0
+            ]
+        },
+        "class_type": "SaveImage",
+        "_meta": {
+            "title": "Save Image"
+        }
+    },
+    "16": {
+        "inputs": {
+            "noise": [
+                "20",
+                0
+            ],
+            "guider": [
+                "19",
+                0
+            ],
+            "sampler": [
+                "17",
+                0
+            ],
+            "sigmas": [
+                "63",
+                0
+            ],
+            "latent_image": [
+                "24",
+                4
+            ]
+        },
+        "class_type": "SamplerCustomAdvanced",
+        "_meta": {
+            "title": "SamplerCustomAdvanced"
+        }
+    },
+    "17": {
+        "inputs": {
+            "sampler_name": "deis"
+        },
+        "class_type": "KSamplerSelect",
+        "_meta": {
+            "title": "KSamplerSelect"
+        }
+    },
+    "18": {
+        "inputs": {
+            "scheduler": "sgm_uniform",
+            "steps": 15,
+            "denoise": 1,
+            "model": [
+                "22",
+                0
+            ]
+        },
+        "class_type": "BasicScheduler",
+        "_meta": {
+            "title": "BasicScheduler"
+        }
+    },
+    "19": {
+        "inputs": {
+            "model": [
+                "22",
+                0
+            ],
+            "conditioning": [
+                "21",
+                0
+            ]
+        },
+        "class_type": "BasicGuider",
+        "_meta": {
+            "title": "BasicGuider"
+        }
+    },
+    "20": {
+        "inputs": {
+            "noise_seed": 966993914913986
+        },
+        "class_type": "RandomNoise",
+        "_meta": {
+            "title": "RandomNoise"
+        }
+    },
+    "21": {
+        "inputs": {
+            "guidance": 3.5,
+            "conditioning": [
+                "67",
+                0
+            ]
+        },
+        "class_type": "FluxGuidance",
+        "_meta": {
+            "title": "FluxGuidance"
+        }
+    },
+    "22": {
+        "inputs": {
+            "max_shift": 1.1500000000000001,
+            "base_shift": 0.5,
+            "width": [
+                "24",
+                0
+            ],
+            "height": [
+                "24",
+                1
+            ],
+            "model": [
+                "66",
+                0
+            ]
+        },
+        "class_type": "ModelSamplingFlux",
+        "_meta": {
+            "title": "ModelSamplingFlux"
+        }
+    },
+    "24": {
+        "inputs": {
+            "width": 1024,
+            "height": 1024,
+            "aspect_ratio": "1:1 square 1024x1024",
+            "swap_dimensions": "Off",
+            "upscale_factor": 1,
+            "batch_size": 1
+        },
+        "class_type": "CR SDXL Aspect Ratio",
+        "_meta": {
+            "title": "🔳 CR SDXL Aspect Ratio"
+        }
+    },
+    "29": {
+        "inputs": {
+            "anything": [
+                "11",
+                0
+            ]
+        },
+        "class_type": "easy cleanGpuUsed",
+        "_meta": {
+            "title": "Clean GPU Used"
+        }
+    },
+    "48": {
+        "inputs": {
+            "clip_name1": "t5xxl_fp8_e4m3fn.safetensors",
+            "clip_name2": "clip_l.safetensors",
+            "type": "flux"
+        },
+        "class_type": "DualCLIPLoader",
+        "_meta": {
+            "title": "DualCLIPLoader"
+        }
+    },
+    "50": {
+        "inputs": {
+            "vae_name": "ae.safetensors"
+        },
+        "class_type": "VAELoader",
+        "_meta": {
+            "title": "Load VAE"
+        }
+    },
+    "62": {
+        "inputs": {
+            "unet_name": "flux1-dev.safetensors",
+            "weight_dtype": "fp8_e4m3fn"
+        },
+        "class_type": "UNETLoader",
+        "_meta": {
+            "title": "Load Diffusion Model"
+        }
+    },
+    "63": {
+        "inputs": {
+            "empty_cache": true,
+            "gc_collect": true,
+            "unload_all_models": true,
+            "any_input": [
+                "18",
+                0
+            ]
+        },
+        "class_type": "VRAM_Debug",
+        "_meta": {
+            "title": "VRAM Debug"
+        }
+    },
+    "66": {
+        "inputs": {
+            "lora_name": "gecko.safetensors",
+            "strength_model": 1,
+            "strength_clip": 1,
+            "model": [
+                "62",
+                0
+            ],
+            "clip": [
+                "48",
+                0
+            ]
+        },
+        "class_type": "LoraLoader",
+        "_meta": {
+            "title": "Load LoRA"
+        }
+    },
+    "67": {
+        "inputs": {
+            "clip_l": "",
+            "t5xxl": "A photo of GECKO wearing a army outfit and standing in front of a army station, the army station has a blue text saying \"Army\" on it\n",
+            "guidance": 3.5,
+            "clip": [
+                "66",
+                1
+            ]
+        },
+        "class_type": "CLIPTextEncodeFlux",
+        "_meta": {
+            "title": "CLIPTextEncodeFlux"
+        }
+    }
+}

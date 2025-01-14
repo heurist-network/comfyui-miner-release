@@ -104,6 +104,9 @@ class ComfyUI:
             value = args.get(key)
             if value is None:
                 continue
+            
+            if key == 'lora_name' and not value.endswith('.safetensors'):
+                value = f"{value}.safetensors"
 
             if comfyui.preprocessing is not None:
                 if comfyui.preprocessing == "csv":
@@ -124,7 +127,6 @@ class ComfyUI:
             workflow[node_id][field][subfield] = value
 
         return workflow
-
 
     def setup(self):
         self.t1 = timer()
