@@ -39,7 +39,7 @@ parameters:
     label: Width
     description: Width of the generated image
     type: int
-    default: 1024
+    default: 672
     minimum: 512
     maximum: 2048
     step: 64
@@ -52,7 +52,7 @@ parameters:
     label: Height
     description: Height of the generated image
     type: int
-    default: 768
+    default: 1024
     minimum: 512
     maximum: 2048
     step: 64
