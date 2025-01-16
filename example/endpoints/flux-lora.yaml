@@ -39,7 +39,7 @@ parameters:
     label: Width
     description: Width of the generated image
     type: int
-    default: 672
+    default: 680
     minimum: 512
     maximum: 2048
     step: 64
