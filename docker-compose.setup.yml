@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  setup:
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile.setup
+    image: heuristai/comfyui-release:setup-${VERSION:-latest}
+    environment:
+      - WORKFLOW_NAMES=${WORKFLOW_NAMES}
+    volumes:
+      - ./:/app/miner
+      - comfyui_code:/root/ComfyUI
+      - comfyui_models:/root/ComfyUI/models
+      - comfyui_custom_nodes:/root/ComfyUI/custom_nodes
+
+volumes:
+  comfyui_code:
+  comfyui_models:
+  comfyui_custom_nodes:

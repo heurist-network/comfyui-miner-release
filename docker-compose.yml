@@ -1,25 +1,12 @@
 version: '3.8'
 
 services:
-  setup:
-    build:
-      context: .
-      dockerfile: dockerfile/Dockerfile.setup
-    image: heuristai/comfyui-release:setup-${VERSION:-latest}
-    environment:
-      - WORKFLOW_NAMES=${WORKFLOW_NAMES}
-    volumes:
-      - ./:/app/miner  # Mount the current directory to /app/miner
-      - comfyui_code:/root/ComfyUI
-      - comfyui_models:/root/ComfyUI/models
-      - comfyui_custom_nodes:/root/ComfyUI/custom_nodes
-
   comfyui:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.comfyui
     image: heuristai/comfyui-release:comfyui-${VERSION:-latest}
-    restart: on-failure:3 
+    restart: on-failure:3
     container_name: comfyui-container-gpu${GPU_DEVICE_ID:-0}-${COMFYUI_PORT:-8188}
     runtime: nvidia
     deploy:
@@ -27,8 +14,8 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ['${GPU_DEVICE_ID:-0}']
-              capabilities: [gpu]
+              device_ids: [ '${GPU_DEVICE_ID:-0}' ]
+              capabilities: [ gpu ]
     volumes:
       - comfyui_code:/root/ComfyUI
       - comfyui_models:/root/ComfyUI/models
@@ -38,7 +25,7 @@ services:
       - COMFYUI_PORT=${COMFYUI_PORT:-8188}
     network_mode: "host"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:${COMFYUI_PORT:-8188}/object_info"]
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:${COMFYUI_PORT:-8188}/object_info" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -57,15 +44,15 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ['${GPU_DEVICE_ID:-0}']
-              capabilities: [gpu]
+              device_ids: [ '${GPU_DEVICE_ID:-0}' ]
+              capabilities: [ gpu ]
     volumes:
-      - ./:/app/miner  # Mount the current directory to /app/miner
+      - ./:/app/miner
       - comfyui_code:/root/ComfyUI
       - comfyui_models:/root/ComfyUI/models
       - comfyui_custom_nodes:/root/ComfyUI/custom_nodes
       - ./logs:/app/miner/logs
-    command: python3 /app/miner/comfyui_miner.py  # Specify the full path
+    command: python3 /app/miner/comfyui_miner.py
     environment:
       - COMFYUI_PORT=${COMFYUI_PORT:-8188}
       - ERC20_ADDRESS=${ERC20_ADDRESS}
@@ -75,6 +62,12 @@ services:
         condition: service_healthy
 
 volumes:
-  comfyui_code:    # For base ComfyUI code
-  comfyui_models:  # Persistent volume for models
-  comfyui_custom_nodes:  # Persistent volume for custom nodes
+  comfyui_code:
+    name: comfyui-miner-release_comfyui_code
+    external: true
+  comfyui_models:
+    name: comfyui-miner-release_comfyui_models
+    external: true
+  comfyui_custom_nodes:
+    name: comfyui-miner-release_comfyui_custom_nodes
+    external: true
