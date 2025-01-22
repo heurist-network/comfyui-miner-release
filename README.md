@@ -21,32 +21,47 @@ cd comfyui-miner-release
 ```
 2. Create a .env file in the project root with your configuration:
 ```bash
-GPU_DEVICE_ID=0
-COMFYUI_PORT=8189    
-ERC20_ADDRESS=your-erc20-address  
+# Common settings
 WORKFLOW_NAMES=hunyuan-fp8
-```
-3. Pull and setup:
-```bash
-docker-compose pull (# Note: ComfyUI image is ~13GB, initial download may take some time)
-docker-compose run --rm setup
-```
-3. Start services:
-```bash
-docker-compose up -d comfyui miner
-```
-4. Monitor Processes:
-```bash
-docker-compose logs -f comfyui
-docker-compose logs -f miner
-```
-Configuration Options
-You can configure the service using environment variables:
 
-- `GPU_DEVICE_ID`: GPU device to use (default: 0)
-- `COMFYUI_PORT`: Port for ComfyUI service (default: 8188)
-- `ERC20_ADDRESS`: Your ERC20 address for mining
-- `WORKFLOW_NAMES`: Comma-separated list of workflows to install and support (default: hunyuan-fp8)
+# GPU 0 settings
+GPU0_DEVICE_ID=0
+GPU0_PORT=8188
+GPU0_ADDRESS=your-erc20-address
+
+# GPU 1 settings (optional)
+GPU1_DEVICE_ID=1
+GPU1_PORT=8189
+GPU1_ADDRESS=your-erc20-address
+```
+3. Pull all required images:
+```bash
+./start.sh pull (# Note: ComfyUI image is ~13GB, initial download may take some time)
+```
+4. Initial setup:
+```bash
+./start.sh setup
+```
+5. Start and manage services:
+```bash
+# Start services
+./start.sh 0 up          # Start on GPU 0
+./start.sh "0,1" up      # Start on multiple GPUs
+
+# Monitor services
+./start.sh 0 logs        # View all logs for GPU 0
+./start.sh 1 logs miner  # View miner logs for GPU 1
+
+# Manage services
+./start.sh 1 restart     # Restart services on GPU 1
+./start.sh "0,1" down    # Stop all services
+```
+
+### Configuration Options:
+- Per-GPU settings using GPU{N}_DEVICE_ID, GPU{N}_PORT, and GPU{N}_ADDRESS
+- WORKFLOW_NAMES: Comma-separated list of workflows (default: hunyuan-fp8)
+- All GPU instances share the same models and custom nodes
+- Each GPU instance runs independently with its own port
 
 ## Method 2: Manual Installation
 

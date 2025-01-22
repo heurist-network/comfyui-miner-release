@@ -9,6 +9,14 @@
 # ./start.sh 4 logs         # Show logs for both services on GPU 4
 # ./start.sh 4 logs miner   # Show logs for just miner on GPU 4
 
+# Check for pull command
+if [ "$1" = "pull" ]; then
+    echo "Pulling all required images..."
+    docker-compose -f docker-compose.setup.yml pull
+    docker-compose pull
+    exit $?
+fi
+
 # Check for setup command
 if [ "$1" = "setup" ]; then
     echo "Running initial setup..."
