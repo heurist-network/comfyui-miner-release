@@ -98,7 +98,7 @@ manage_gpu_services() {
                 COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose stop
             fi
             ;;
-        restart)
+        rebuild)
             if [ "$service" = "comfyui" ] || [ "$service" = "miner" ]; then
                 # Stop and remove the specific service
                 COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose stop $service
@@ -109,6 +109,13 @@ manage_gpu_services() {
                 COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose stop
                 COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose rm -f
                 COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose up -d comfyui miner
+            fi
+            ;;
+        restart) 
+            if [ "$service" = "comfyui" ] || [ "$service" = "miner" ]; then
+                COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose restart $service
+            else
+                COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose restart
             fi
             ;;
         *)
