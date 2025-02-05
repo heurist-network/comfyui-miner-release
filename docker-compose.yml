@@ -56,6 +56,7 @@ services:
     environment:
       - COMFYUI_PORT=${COMFYUI_PORT:-8188}
       - ERC20_ADDRESS=${ERC20_ADDRESS}
+      - WORKFLOW_NAMES=${WORKFLOW_NAMES}
     network_mode: "host"
     depends_on:
       comfyui:

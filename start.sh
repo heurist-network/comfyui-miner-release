@@ -67,13 +67,15 @@ manage_gpu_services() {
     GPU_DEVICE_ID=$(grep "GPU${gpu_num}_DEVICE_ID" .env | cut -d '=' -f2)
     COMFYUI_PORT=$(grep "GPU${gpu_num}_PORT" .env | cut -d '=' -f2)
     ERC20_ADDRESS=$(grep "GPU${gpu_num}_ADDRESS" .env | cut -d '=' -f2)
+    GPU_WORKFLOWS=$(grep "GPU${gpu_num}_WORKFLOWS" .env | cut -d '=' -f2)
 
-    echo "Managing GPU $gpu_num services (Port: $COMFYUI_PORT)"
+    echo "Managing GPU $gpu_num services (Port: $COMFYUI_PORT, Workflows: $GPU_WORKFLOWS)"
 
-    # Set environment variables and use project namespace
+    # Set environment variables
     export GPU_DEVICE_ID=$GPU_DEVICE_ID
     export COMFYUI_PORT=$COMFYUI_PORT
     export ERC20_ADDRESS=$ERC20_ADDRESS
+    export WORKFLOW_NAMES=$GPU_WORKFLOWS  # This will override the common setting
 
     case $action in
         up)
@@ -98,9 +100,15 @@ manage_gpu_services() {
             ;;
         restart)
             if [ "$service" = "comfyui" ] || [ "$service" = "miner" ]; then
-                COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose restart $service
+                # Stop and remove the specific service
+                COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose stop $service
+                COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose rm -f $service
+                COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose up -d $service
             else
-                COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose restart
+                # Handle full restart of all services
+                COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose stop
+                COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose rm -f
+                COMPOSE_PROJECT_NAME="gpu${gpu_num}" docker-compose up -d comfyui miner
             fi
             ;;
         *)

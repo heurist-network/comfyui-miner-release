@@ -42,6 +42,7 @@
         "models/loras/taologo.safetensors": "https://files.heurist.xyz/taologo.safetensors",
         "models/loras/wsb.safetensors": "https://files.heurist.xyz/wsb.safetensors",
         "models/loras/n1kita.safetensors": "https://files.heurist.xyz/n1kita.safetensors",
-        "models/loras/migglesv3.safetensors": "https://files.heurist.xyz/migglesv3.safetensors"
+        "models/loras/migglesv3.safetensors": "https://files.heurist.xyz/migglesv3.safetensors",
+        "models/loras/sxtheu.safetensors": "https://files.heurist.xyz/sxtheu.safetensors"
     }
 }

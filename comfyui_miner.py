@@ -293,7 +293,7 @@ def main():
             [w.strip() for w in (args.workflows or '').split(',') if w.strip()] or 
             config['installation']['workflow_names']
         )
-        
+
         comfyui_instance = ComfyUI(config, server_port=str(port))
         logger.info(f"ComfyUI client configured for port {port}")
 
