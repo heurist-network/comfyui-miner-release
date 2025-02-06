@@ -28,6 +28,14 @@ class MinerService:
 
         self.session = Session()
         self.session.headers.update({'Content-Type': 'application/json'})
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=100,    # Number of connection pools to cache
+            pool_maxsize=100,        # Number of connections to save in the pool
+            max_retries=3,           # Built-in retry mechanism
+            pool_block=False         # Don't block when pool is full
+        )
+        self.session.mount('http://', adapter)
+        self.session.mount('https://', adapter)
         self.server_connected = True  # Initially assume connected
 
         self.supported_workflow_ids = WorkflowConfig.get_valid_workflow_ids(workflow_names)
@@ -63,28 +71,26 @@ class MinerService:
 
         for attempt in range(max_retries):
             try:
-                with Session() as session:
-                    session.headers.update({'Content-Type': 'application/json'})
-                    response = session.post(
-                        f"{self.base_url}/miner_request",
-                        json={
-                            'erc20_address': self.erc20_address,
-                            'workflow_ids': self.supported_workflow_ids,
-                        },
-                        timeout=timeout
-                    )
+                response = self.session.post(
+                    f"{self.base_url}/miner_request",
+                    json={
+                        'erc20_address': self.erc20_address,
+                        'workflow_ids': self.supported_workflow_ids,
+                    },
+                    timeout=timeout
+                )
 
-                    if response.status_code == 200:
-                        # Server is back online if it was previously disconnected
-                        if not self.server_connected:
-                            logger.success("Connection to server restored - back online")
-                            self.server_connected = True
-                        return response.json()
-                    else:
-                        wait_time = base_wait * (2 ** attempt)
-                        logger.warning(f"Request failed with status {response.status_code}, retrying in {wait_time}s...")
-                        self.server_connected = False
-                        time.sleep(wait_time)
+                if response.status_code == 200:
+                    # Server is back online if it was previously disconnected
+                    if not self.server_connected:
+                        logger.success("Connection to server restored - back online")
+                        self.server_connected = True
+                    return response.json()
+                else:
+                    wait_time = base_wait * (2 ** attempt)
+                    logger.warning(f"Request failed with status {response.status_code}, retrying in {wait_time}s...")
+                    self.server_connected = False
+                    time.sleep(wait_time)
 
             except (requests.Timeout, requests.ConnectionError) as e:
                 wait_time = base_wait * (2 ** attempt)
@@ -93,6 +99,7 @@ class MinerService:
                     self.server_connected = False
                 logger.warning(f"Connection error: {str(e)}, retrying in {wait_time}s...")
                 time.sleep(wait_time)
+                
             except Exception as e:
                 logger.exception(f"Request error: {e}")
                 self.server_connected = False
